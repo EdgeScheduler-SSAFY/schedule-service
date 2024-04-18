@@ -1,6 +1,8 @@
 package com.edgescheduler.scheduleservice.domain;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,6 +25,7 @@ public class Attendee {
     private Boolean isRequired;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private AttendeeStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
