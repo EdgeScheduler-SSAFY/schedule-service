@@ -8,21 +8,10 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 
 @Entity
-public class Schedule {
+public class Proposal {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @NotNull
-    private Integer organizerId;
-
-    @NotNull
-    private String name;
-
-    private String description;
-
-    @NotNull
-    private ScheduleType type;
 
     @NotNull
     private Instant startDatetime;
@@ -30,8 +19,5 @@ public class Schedule {
     @NotNull
     private Instant endDatetime;
 
-    private String googleCalendarId;
-
-    @NotNull
-    private Boolean isPublic;
+    private String comment;
 }

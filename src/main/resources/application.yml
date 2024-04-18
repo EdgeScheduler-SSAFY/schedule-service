@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: schedule-service
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/${MYSQL_DATABASE}
+    username: root
+    password: ${MYSQL_ROOT_PASSWORD}
+  config:
+    import:
+      - optional:env.yml
+      - optional:jpa.yml
