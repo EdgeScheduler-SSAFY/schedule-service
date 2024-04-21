@@ -30,7 +30,7 @@ public class JUnitNestedExerciseTest {
     }
 
     /**
-     * @Nested annotation
+     *  @Nested annotation
      *  - 중첩 테스트 클래스를 선언
      *  - 테스트를 그룹화하고 구조화, 관계를 만들 수 있게 지원하는 어노테이션
      *  - Nested 클래스 내부에서 수명 주기 메서드(@BeforeXX, @AfterXX)를 별도로 지정할 수 있음
@@ -86,7 +86,7 @@ public class JUnitNestedExerciseTest {
     }
 
     /**
-     * @Nested annotation이 붙지 않은 클래스 내 테스트 메서드는 실행되지 않음
+     *  @Nested annotation이 붙지 않은 클래스 내 테스트 메서드는 실행되지 않음
      */
     class NonNestedTest {
 

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 @Slf4j
 /**
- * @DisplayName annotation
+ *  @DisplayName annotation
  *  - 테스트의 이름을 지정하는 어노테이션
  *  - 클래스 / 메서드 레벨에 사용 가능
  */
@@ -21,7 +21,7 @@ public class JUnitUtilityExerciseTest {
     }
 
     /**
-     * @Tag annotation
+     *  @Tag annotation
      *  - 테스트에 태그를 지정하는 어노테이션
      *  - 클래스 / 메서드 레벨에 사용 가능
      *  - 태그를 지정하여 테스트 그룹을 만들어 테스트 실행

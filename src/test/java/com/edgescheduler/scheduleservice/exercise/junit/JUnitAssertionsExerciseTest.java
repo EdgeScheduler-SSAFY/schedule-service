@@ -14,15 +14,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
 /**
- * @TestToFail annotation : 테스트가 실패하면 통과 처리되도록 설정한 사용자 정의 어노테이션
+ *  @TestToFail annotation : 테스트가 실패하면 통과 처리되도록 설정한 사용자 정의 어노테이션
  */
 @ExtendWith(TestToFailExtension.class)
 public class JUnitAssertionsExerciseTest {
 
     /**
-     * fail() : 테스트 실패 처리
-     * fail(String message) : 테스트 실패 처리, 실패 이유 메시지 전달
-     * fail(Throwable cause) : 테스트 실패 처리, 실패 이유 예외 전달
+     *  fail() : 테스트 실패 처리
+     *  fail(String message) : 테스트 실패 처리, 실패 이유 메시지 전달
+     *  fail(Throwable cause) : 테스트 실패 처리, 실패 이유 예외 전달
      */
     @TestToFail
     void failTest() {
@@ -57,7 +57,7 @@ public class JUnitAssertionsExerciseTest {
 
 
     /**
-     * Assertions comparison methods
+     *  Assertions comparison methods
      *  - assertXXX() : 테스트 결과 검증
      *  - assertTrue / assertFalse : 참/거짓 검증
      *  - assertEquals / assertNotEquals : 동등성 검증, 객체의 경우 equals() 메서드로 비교
@@ -87,7 +87,7 @@ public class JUnitAssertionsExerciseTest {
 
 
     /**
-     * assertAll
+     *  assertAll
      *  - 인자로 받은 여러 Executable을 모두 실행하고 검증을 수행
      *  - Exception을 throw하는 Executable이 포함된 경우, 테스트 실패 처리
      *  - 가변 인자, Collection, Stream 형태로 여러 Executable을 전달할 수 있음
@@ -105,7 +105,7 @@ public class JUnitAssertionsExerciseTest {
     }
 
     /**
-     * assertThrows / assertDoesNotThrow
+     *  assertThrows / assertDoesNotThrow
      *  - 특정 예외가 발생하는지 / 발생하지 않는지 검증
      *  - 인자로 주어진 Exception을 상속하는 Exception이 발생해도 통과
      *  - Executable이 아닌 ThrowingSupplier을 인자로 사용할 경우 반환값을 전달받아 이후 테스트 코드에 사용할 수 있음
@@ -127,7 +127,7 @@ public class JUnitAssertionsExerciseTest {
     }
 
     /**
-     * assertThrowsExactly : 인자로 전달받은 Throwable 클래스와 정확히 일치하는 예외가 발생하는지 검증 (상속 관계는 통과하지 않음)
+     *  assertThrowsExactly : 인자로 전달받은 Throwable 클래스와 정확히 일치하는 예외가 발생하는지 검증 (상속 관계는 통과하지 않음)
      */
     @TestToFail
     void assertThrowsExactlyTest() {
@@ -139,11 +139,11 @@ public class JUnitAssertionsExerciseTest {
     }
 
     /**
-     * assertTimeout
-     * - 특정 시간 내에 실행이 완료되는지 검증
-     * - Duration 객체를 이용해 시간을 지정하고, 실행 시간이 지정한 시간을 초과하면 테스트 실패 처리
-     * - 실행 시간이 지정한 시간을 초과해도 테스트는 계속 진행되며, 테스트 결과는 실패 처리
-     * - 두번째 인자로 Executable이 아닌 ThrowingSupplier를 사용할 경우 반환값을 전달받아 이후 테스트 코드에 사용할 수 있음
+     *  assertTimeout
+     *  - 특정 시간 내에 실행이 완료되는지 검증
+     *  - Duration 객체를 이용해 시간을 지정하고, 실행 시간이 지정한 시간을 초과하면 테스트 실패 처리
+     *  - 실행 시간이 지정한 시간을 초과해도 테스트는 계속 진행되며, 테스트 결과는 실패 처리
+     *  - 두번째 인자로 Executable이 아닌 ThrowingSupplier를 사용할 경우 반환값을 전달받아 이후 테스트 코드에 사용할 수 있음
      */
     @Test
     void assertTimeoutTest() {
@@ -166,7 +166,7 @@ public class JUnitAssertionsExerciseTest {
     }
 
     /**
-     * assertTimeoutPreemptively
+     *  assertTimeoutPreemptively
      *  - 테스트 실행 중에 기대한 시간을 초과하면 즉시 테스트 실패 처리 (실행 중인 코드를 중단)
      *  - 테스트 실행 시간을 단축할 수 있음
      */

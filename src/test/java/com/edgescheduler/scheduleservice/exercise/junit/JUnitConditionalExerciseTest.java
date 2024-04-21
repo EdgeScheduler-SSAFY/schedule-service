@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class JUnitConditionalExerciseTest {
 
     /**
-     * @Disabled annotation
+     *  @Disabled annotation
      *  - 테스트 무시 처리
      *  - 테스트 코드를 주석 처리하지 않고 테스트를 무시하고 싶을 때 사용
      *  - 메서드 레벨 / 클래스 레벨에 모두 사용 가능 (Nested 클래스에도 가능)
@@ -41,8 +41,8 @@ public class JUnitConditionalExerciseTest {
 
 
     /**
-     * @Disabled* / @Enabled* annotations
-     * - 특정 조건에 따라 테스트를 무시하거나 진행하는 어노테이션 제공
+     *  @Disabled* / @Enabled* annotations
+     *  - 특정 조건에 따라 테스트를 무시하거나 진행하는 어노테이션 제공
      *   - OS 종류, Java 버전, 환경 변수, 시스템 프로퍼티 등
      */
     @DisabledOnOs(OS.WINDOWS)
@@ -85,7 +85,7 @@ public class JUnitConditionalExerciseTest {
     }
 
     /**
-     * @EnabledIfEnvironmentVariable / @DisabledIfEnvironmentVariable
+     *  @EnabledIfEnvironmentVariable / @DisabledIfEnvironmentVariable
      *  - 환경 변수에 따라 테스트를 진행하거나 무시
      *  - IntelliJ의 Run/Debug Configuration에서 환경 변수를 설정할 수 있음
      */
@@ -96,7 +96,7 @@ public class JUnitConditionalExerciseTest {
     }
 
     /**
-     * @EnabledIf / @DisabledIf
+     *  @EnabledIf / @DisabledIf
      *  - 커스텀 조건에 따라 테스트를 진행하거나 무시
      */
     boolean condition() {

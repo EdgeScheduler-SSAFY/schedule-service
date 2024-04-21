@@ -5,7 +5,7 @@ import org.junit.jupiter.api.*;
 public class JUnitLifeCycleExerciseTest {
 
     /**
-     * @Test annotation
+     *  @Test annotation
      *  - 테스트 메서드 지정
      *  - 메서드는 void 타입이어야 하며, 파라미터를 가질 수 없음
      *  - 테스트 클래스 내부의 테스트 메서드 사이에는 순서 보장이 되지 않음
@@ -17,9 +17,9 @@ public class JUnitLifeCycleExerciseTest {
     }
 
     /**
-     * @BeforeAll annotation : 모든 테스트 메서드가 실행되기 전 딱 한 번 실행
-     * @AfterAll annotation : 모든 테스트 메서드가 실행된 후 딱 한 번 실행
-     * static 메서드로 선언해야 함
+     *  @BeforeAll annotation : 모든 테스트 메서드가 실행되기 전 딱 한 번 실행
+     *  @AfterAll annotation : 모든 테스트 메서드가 실행된 후 딱 한 번 실행
+     *  static 메서드로 선언해야 함
      */
     @BeforeAll
     static void beforeAll() {
@@ -32,15 +32,15 @@ public class JUnitLifeCycleExerciseTest {
     }
 
     /**
-     * @BeforeEach annotation
+     *  @BeforeEach annotation
      *  - 각 테스트 메서드가 실행되기 전 실행
      *  - 테스트 데이터를 설정하고 테스트 환경을 준비
-     * @AfterEach annotation :
+     *  @AfterEach annotation :
      *  - 각 테스트 메서드가 실행된 후 실행
      *  - 테스트 데이터를 정리하고 리소스 해제
      *
-     * 하나의 테스트 클래스에 여러 @BeforeXX, @AfterXX 메서드를 선언할 수 있지만 순서가 보장되지 않으므로 주의
-     * BeforeAll - BeforeEach - Test - AfterEach - AfterAll 순으로 실행
+     *  하나의 테스트 클래스에 여러 @BeforeXX, @AfterXX 메서드를 선언할 수 있지만 순서가 보장되지 않으므로 주의
+     *  BeforeAll - BeforeEach - Test - AfterEach - AfterAll 순으로 실행
      */
     @BeforeEach
     void beforeEach() {
