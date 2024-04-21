@@ -130,6 +130,7 @@ public class MockArgumentExerciseTest {
     /**
      *  argThat(ArgumentMatcher<T> matcher) : 지정된 ArgumentMatcher를 사용해 인자를 지정
      *  - ArgumentMatcher는 함수형 인터페이스로, `boolean matches(T argument)` 메서드를 구현해 인자를 비교
+     *  - matches 메서드가 false를 반환하면 Stubbing이 적용되지 않음 (기본값을 반환)
      */
     @Test
     void mockArgumentArgThatTest() {
@@ -139,7 +140,11 @@ public class MockArgumentExerciseTest {
         when(dummyService.dummyMethodWithParam(argThat(argument -> argument.length() < 5)))
                 .thenReturn("mock argThat");
 
+        when(dummyService.dummyMethodWithParamInt(argThat(argument -> argument < 5)))
+                .thenReturn(1);
+
         assertEquals("mock argThat", dummyService.dummyMethodWithParam("str"));
         assertNull(dummyService.dummyMethodWithParam("string"));
+        assertEquals(1, dummyService.dummyMethodWithParamInt(4));
     }
 }

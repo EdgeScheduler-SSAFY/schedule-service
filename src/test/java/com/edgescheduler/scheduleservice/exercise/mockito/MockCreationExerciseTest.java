@@ -24,6 +24,7 @@ public class MockCreationExerciseTest {
     @Test
     void mockCreationTest() {
         DummyService dummyService = mock();
+
         assertInstanceOf(DummyService.class, dummyService);
     }
 

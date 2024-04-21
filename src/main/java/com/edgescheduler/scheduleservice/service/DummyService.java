@@ -20,4 +20,8 @@ public class DummyService {
     public String dummyMethodWithParam(String param) {
         return "dummy " + param;
     }
+
+    public Integer dummyMethodWithParamInt(Integer param) {
+        return 1 + param;
+    }
 }
