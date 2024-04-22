@@ -24,6 +24,15 @@ class ScheduleMediateServiceTest {
 
   @BeforeAll
   static void setUpSchedules() {
+    /**
+     *  2024-04-10 schedules
+     *  00:00 ~ 06:00 : PERSONAL
+     *  07:10 ~ 08:00 : PERSONAL
+     *  09:00 ~ 18:00 : WORKING     ** available time
+     *  11:00 ~ 13:30 : MEETING
+     *  19:30 ~ 20:30 : PERSONAL
+     *  23:30 ~ 24:00 : PERSONAL
+     */
     schedules =
         List.of(
             new ScheduleVO(
@@ -69,14 +78,30 @@ class ScheduleMediateServiceTest {
     }
 
     Boolean[] expected = {
-        false, false, false, false, false, false, false, false, false, false, false, false,
-        false, false, false, false, false, false, false, false, false, false, true, true,
-        true, true, true, true, false, false, false, false, true, true, true, true,
-        true, true, true, true, true, true, true, true, false, false, false, false,
-        false, false, false, false, false, false, true, true, true, true, true, true,
-        true, true, true, true, true, true, true, true, true, true, true, true,
-        true, true, true, true, true, true, false, false, false, false, true, true,
-        true, true, true, true, true, true, true, true, true, true, false, false
+        false, false, false, false,   // 00:00 ~ 01:00
+        false, false, false, false,   // 01:00 ~ 02:00
+        false, false, false, false,   // 02:00 ~ 03:00
+        false, false, false, false,   // 03:00 ~ 04:00
+        false, false, false, false,   // 04:00 ~ 05:00
+        false, false, true, true,     // 05:00 ~ 06:00
+        true, true, true, true,       // 06:00 ~ 07:00
+        false, false, false, false,   // 07:00 ~ 08:00
+        true, true, true, true,       // 08:00 ~ 09:00
+        true, true, true, true,       // 09:00 ~ 10:00
+        true, true, true, true,       // 10:00 ~ 11:00
+        false, false, false, false,   // 11:00 ~ 12:00
+        false, false, false, false,   // 12:00 ~ 13:00
+        false, false, true, true,     // 13:00 ~ 14:00
+        true, true, true, true,       // 14:00 ~ 15:00
+        true, true, true, true,       // 15:00 ~ 16:00
+        true, true, true, true,       // 16:00 ~ 17:00
+        true, true, true, true,       // 17:00 ~ 18:00
+        true, true, true, true,       // 18:00 ~ 19:00
+        true, true, false, false,     // 19:00 ~ 20:00
+        false, false, true, true,     // 20:00 ~ 21:00
+        true, true, true, true,       // 21:00 ~ 22:00
+        true, true, true, true,       // 22:00 ~ 23:00
+        true, true, false, false      // 23:00 ~ 24:00
     };
 
     var availabilities =
