@@ -8,7 +8,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@Getter
 @Entity
 public class Schedule {
 
@@ -37,4 +42,16 @@ public class Schedule {
 
     @NotNull
     private Boolean isPublic;
+
+    @Builder
+    public Schedule(Integer organizerId, String name, String description, ScheduleType type, Instant startDatetime, Instant endDatetime, String googleCalendarId, Boolean isPublic){
+        this.organizerId = organizerId;
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
+        this.googleCalendarId = googleCalendarId;
+        this.isPublic = isPublic;
+    }
 }
