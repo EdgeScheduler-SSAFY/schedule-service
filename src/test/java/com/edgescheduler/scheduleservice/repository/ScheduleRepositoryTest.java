@@ -25,9 +25,6 @@ class ScheduleRepositoryTest {
     @Autowired
     private ScheduleRepository scheduleRepository;
 
-    @Autowired
-    private AttendeeRepository attendeeRepository;
-
     @DisplayName("일정 등록")
     @Test
     void save() {
@@ -73,18 +70,6 @@ class ScheduleRepositoryTest {
 
         Schedule savedSchedule = scheduleRepository.save(schedule);
 
-
-        Schedule scheduleRepeat = Schedule.builder()
-            .organizerId(1)
-            .name("일정명")
-            .description("일정 내용")
-            .type(ScheduleType.valueOf("MEETING"))
-            .startDatetime(Instant.parse("2024-04-24T11:00:00Z"))
-            .endDatetime(Instant.parse("2024-04-24T11:00:00Z"))
-            .googleCalendarId("googleCalendarId1")
-            .isPublic(true)
-            .build();
-
         assertAll(
             () -> assertEquals(3, savedSchedule.getAttendees().size()),
             () -> assertEquals(1, scheduleRepository.findAll().size())
@@ -106,9 +91,9 @@ class ScheduleRepositoryTest {
             .build();
         Schedule sc = scheduleRepository.save(schedule);
 
-        Long ScheduleId = sc.getId();
+        Long scheduleId = sc.getId();
 
-        Optional<Schedule> result = scheduleRepository.findById(ScheduleId);
+        Optional<Schedule> result = scheduleRepository.findById(scheduleId);
         result.ifPresent(value -> assertSame(schedule, value));
     }
 
