@@ -18,11 +18,17 @@ public class SimpleScheduleMediateService implements ScheduleMediateService {
     @Override
     public boolean isOnWorkingHourAndAvailable(Instant startTime, Instant endTime,
         List<ScheduleVO> schedules) {
-        return false;
+        return schedules.stream().noneMatch(schedule -> isTimeConflict(startTime, endTime, schedule)) &&
+            schedules.stream().anyMatch(schedule -> isWithinWorkingHour(startTime, endTime, schedule));
     }
 
     private boolean isTimeConflict(Instant startTime, Instant endTime, ScheduleVO schedule) {
         return !schedule.type().equals(ScheduleType.WORKING) &&
             startTime.isBefore(schedule.endDatetime()) && endTime.isAfter(schedule.startDatetime());
+    }
+
+    private boolean isWithinWorkingHour(Instant startTime, Instant endTime, ScheduleVO schedule) {
+        return schedule.type().equals(ScheduleType.WORKING) &&
+            !startTime.isBefore(schedule.startDatetime()) && !endTime.isAfter(schedule.endDatetime());
     }
 }
