@@ -18,6 +18,4 @@ public class Proposal {
 
     @NotNull
     private Instant endDatetime;
-
-    private String comment;
 }
