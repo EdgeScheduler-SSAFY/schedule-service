@@ -1,5 +1,6 @@
 package com.edgescheduler.scheduleservice.controller;
 
+import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
@@ -63,5 +64,13 @@ public class ScheduleController {
     ) {
         scheduleService.deleteSchedule(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/members/calculate-time-availability")
+    public ResponseEntity<?> calculateTimeAvailability(
+        @RequestBody CalculateAvailabilityRequest calculateAvailabilityRequest
+    ) {
+        var response = scheduleService.calculateAvailability(calculateAvailabilityRequest);
+        return ResponseEntity.ok(response);
     }
 }
