@@ -35,6 +35,8 @@ public class Attendee {
     @Enumerated(EnumType.STRING)
     private AttendeeStatus status;
 
+    private String reason;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id", nullable = false)
     private Schedule schedule;
