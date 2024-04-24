@@ -2,6 +2,8 @@ package com.edgescheduler.scheduleservice.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,12 +11,12 @@ import lombok.Getter;
 @Builder
 public class CalculateAvailabilityResponse {
 
-    private List<individualScheduleEntry> schedules;
+    private List<individualSchedules> schedules;
     private List<TokenizedTimeAvailability> tokenizedTimeAvailabilities;
 
     @Getter
     @Builder
-    public static class individualScheduleEntry {
+    public static class individualSchedules {
 
         private Integer memberId;
         private List<ScheduleEntry> schedules;
@@ -26,6 +28,7 @@ public class CalculateAvailabilityResponse {
         private String name;
         private LocalDateTime startDatetime;
         private LocalDateTime endDatetime;
+        private ScheduleType type;
         private Boolean isPublic;
     }
 

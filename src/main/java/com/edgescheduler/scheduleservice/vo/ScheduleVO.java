@@ -5,7 +5,9 @@ import java.time.Instant;
 
 public record ScheduleVO(
     Long id,
+    String name,
     ScheduleType type,
     Instant startDatetime,
-    Instant endDatetime
+    Instant endDatetime,
+    Boolean isPublic
 ) {}

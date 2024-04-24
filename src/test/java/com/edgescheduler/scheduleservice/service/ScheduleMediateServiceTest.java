@@ -10,7 +10,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -26,7 +25,7 @@ class ScheduleMediateServiceTest {
   static void setUpSchedules() {
     /**
      *  2024-04-10 schedules
-     *  00:00 ~ 06:00 : PERSONAL
+     *  00:00 ~ 05:30 : PERSONAL
      *  07:10 ~ 08:00 : PERSONAL
      *  09:00 ~ 18:00 : WORKING     ** available time
      *  11:00 ~ 13:30 : MEETING
@@ -37,34 +36,53 @@ class ScheduleMediateServiceTest {
         List.of(
             new ScheduleVO(
                 1L,
+                "schedule1",
                 ScheduleType.PERSONAL,
                 Instant.parse("2024-04-09T23:30:00Z"),
-                Instant.parse("2024-04-10T05:30:00Z")),
+                Instant.parse("2024-04-10T05:30:00Z"),
+                true
+            ),
             new ScheduleVO(
                 2L,
+                "schedule2",
                 ScheduleType.PERSONAL,
                 Instant.parse("2024-04-10T07:10:00Z"),
-                Instant.parse("2024-04-10T08:00:00Z")),
+                Instant.parse("2024-04-10T08:00:00Z"),
+                    true
+            ),
             new ScheduleVO(
                 3L,
+                "schedule3",
                 ScheduleType.MEETING,
                 Instant.parse("2024-04-10T11:00:00Z"),
-                Instant.parse("2024-04-10T13:30:00Z")),
+                Instant.parse("2024-04-10T13:30:00Z"),
+                    true
+            ),
             new ScheduleVO(
                 4L,
+                "schedule4",
                 ScheduleType.PERSONAL,
                 Instant.parse("2024-04-10T19:30:00Z"),
-                Instant.parse("2024-04-10T20:30:00Z")),
+                Instant.parse("2024-04-10T20:30:00Z"),
+                    true
+            ),
             new ScheduleVO(
                 5L,
+                "schedule5",
                 ScheduleType.PERSONAL,
                 Instant.parse("2024-04-10T23:30:00Z"),
-                Instant.parse("2024-04-11T05:30:00Z")),
+                Instant.parse("2024-04-11T05:30:00Z"),
+                    true
+            ),
             new ScheduleVO(
                 6L,
+                "schedule6",
                 ScheduleType.WORKING,
                 Instant.parse("2024-04-10T09:00:00Z"),
-                Instant.parse("2024-04-10T18:00:00Z")));
+                Instant.parse("2024-04-10T18:00:00Z"),
+                    true
+            )
+        );
   }
 
   @Test
