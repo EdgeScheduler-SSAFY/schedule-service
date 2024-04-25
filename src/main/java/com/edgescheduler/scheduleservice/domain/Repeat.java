@@ -1,15 +1,11 @@
 package com.edgescheduler.scheduleservice.domain;
 
-import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Convert;
-import jakarta.persistence.Converter;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
