@@ -11,12 +11,12 @@ import lombok.Getter;
 @Builder
 public class CalculateAvailabilityResponse {
 
-    private List<individualSchedules> schedules;
+    private List<IndividualSchedules> schedules;
     private List<TokenizedTimeAvailability> tokenizedTimeAvailabilities;
 
     @Getter
     @Builder
-    public static class individualSchedules {
+    public static class IndividualSchedules {
 
         private Integer memberId;
         private List<ScheduleEntry> schedules;

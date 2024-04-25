@@ -4,6 +4,7 @@ import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityReques
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
 import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse;
+import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse.IndividualSchedules;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleUpdateResponse;
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -91,7 +91,7 @@ public class SimpleScheduleService implements ScheduleService {
                 );
 
         // 응답에 필요한 개별 회원의 스케줄 목록을 생성한다
-        List<CalculateAvailabilityResponse.individualSchedules> schedules = new ArrayList<>();
+        List<IndividualSchedules> schedules = new ArrayList<>();
         addIndividualSchedules(schedules, requiredMemberScheduleMap);
         addIndividualSchedules(schedules, unrequiredMemberScheduleMap);
 
@@ -103,18 +103,16 @@ public class SimpleScheduleService implements ScheduleService {
             Instant intervalStart = start.plusSeconds(i * 900);
             Instant intervalEnd = start.plusSeconds((i + 1) * 900);
 
-            int availableMemberCount = (int) unrequiredMemberScheduleMap.values().stream()
+            int availableRequiredMemberCount = (int) requiredMemberScheduleMap.values().stream()
                     .filter(scheduleVOList -> scheduleMediateService.isAvailableWithOtherSchedule(intervalStart, intervalEnd, scheduleVOList))
                     .count();
-            int availableRequiredMemberCount = availableMemberCount +
-                    (int) requiredMemberScheduleMap.values().stream()
+            int availableMemberCount = availableRequiredMemberCount + (int) unrequiredMemberScheduleMap.values().stream()
                     .filter(scheduleVOList -> scheduleMediateService.isAvailableWithOtherSchedule(intervalStart, intervalEnd, scheduleVOList))
                     .count();
-            int availableMemberInWorkingHourCount = (int) unrequiredMemberScheduleMap.values().stream()
+            int availableRequiredMemberInWorkingHourCount = (int) requiredMemberScheduleMap.values().stream()
                     .filter(scheduleVOList -> scheduleMediateService.isOnWorkingHourAndAvailable(intervalStart, intervalEnd, scheduleVOList))
                     .count();
-            int availableRequiredMemberInWorkingHourCount = availableMemberInWorkingHourCount +
-                    (int) requiredMemberScheduleMap.values().stream()
+            int availableMemberInWorkingHourCount = availableRequiredMemberInWorkingHourCount + (int) unrequiredMemberScheduleMap.values().stream()
                     .filter(scheduleVOList -> scheduleMediateService.isOnWorkingHourAndAvailable(intervalStart, intervalEnd, scheduleVOList))
                     .count();
 
@@ -139,14 +137,14 @@ public class SimpleScheduleService implements ScheduleService {
      *  TODO: 추후 각 멤버별 시간대 변환 처리 필요
      */
     private void addIndividualSchedules(
-            List<CalculateAvailabilityResponse.individualSchedules> schedules,
+            List<IndividualSchedules> schedules,
             Map<Integer, List<ScheduleVO>> memberScheduleMap
     ) {
         memberScheduleMap.keySet()
                 .forEach(
                         memberId -> {
                             schedules.add(
-                                    CalculateAvailabilityResponse.individualSchedules.builder()
+                                    IndividualSchedules.builder()
                                             .memberId(memberId)
                                             .schedules(memberScheduleMap.get(memberId).stream().map(
                                                     schedule -> CalculateAvailabilityResponse.ScheduleEntry.builder()
