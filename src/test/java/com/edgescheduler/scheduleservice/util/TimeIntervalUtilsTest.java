@@ -26,9 +26,9 @@ class TimeIntervalUtilsTest {
         @DisplayName("이후 시간 중 가장 가까운 15분 단위 시간으로 조정")
         @Test
         void adjustTest() {
-            var dateTime = LocalDateTime.of(2024, 4, 25, 10, 5);
+            var dateTime = LocalDateTime.of(2024, 4, 25, 23, 59);
             assertEquals(
-                LocalDateTime.of(2024, 4, 25, 10, 15),
+                LocalDateTime.of(2024, 4, 26, 0, 0),
                 TimeIntervalUtils.adjustToNextQuarterHour(dateTime)
             );
         }
