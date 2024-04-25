@@ -1,2 +1,5 @@
-package com.edgescheduler.scheduleservice.domain;public class RepeatDayType {
+package com.edgescheduler.scheduleservice.domain;
+
+public enum RepeatDayType {
+    MON,TUE,WED,THU,FRI,SAT,SUN
 }
