@@ -1,5 +1,5 @@
 package com.edgescheduler.scheduleservice.domain;
 
-public enum RepeatFreqType {
+public enum RecurrenceFreqType {
     DAILY, WEEKLY, MONTHLY
 }

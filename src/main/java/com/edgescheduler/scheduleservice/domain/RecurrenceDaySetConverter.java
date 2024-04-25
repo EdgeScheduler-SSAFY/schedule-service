@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Converter
-class RepeatDaySetConverter implements AttributeConverter<Set<String>, String> {
+class RecurrenceDaySetConverter implements AttributeConverter<Set<String>, String> {
 
     @Override
     public String convertToDatabaseColumn(Set<String> attribute) {

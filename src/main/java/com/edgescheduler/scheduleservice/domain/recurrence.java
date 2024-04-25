@@ -2,6 +2,8 @@ package com.edgescheduler.scheduleservice.domain;
 
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,19 +19,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Repeat {
+public class continuation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     private RepeatFreqType freq;
 
-    private int interval;
+    private Integer intv;
 
     private Instant expiredDate;
 
-    private int count;
+    private Integer count;
 
     @Convert(converter = RepeatDaySetConverter.class)
     private Set<String> repeatDay;
