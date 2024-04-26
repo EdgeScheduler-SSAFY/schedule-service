@@ -19,14 +19,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class continuation {
+public class Recurrence {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private RepeatFreqType freq;
+    private RecurrenceFreqType freq;
 
     private Integer intv;
 
@@ -34,6 +34,6 @@ public class continuation {
 
     private Integer count;
 
-    @Convert(converter = RepeatDaySetConverter.class)
-    private Set<String> repeatDay;
+    @Convert(converter = RecurrenceDaySetConverter.class)
+    private Set<String> recurrenceDay;
 }
