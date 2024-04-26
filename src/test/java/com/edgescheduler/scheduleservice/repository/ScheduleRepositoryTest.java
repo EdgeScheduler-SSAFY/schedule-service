@@ -12,12 +12,14 @@ import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+@Slf4j
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
 class ScheduleRepositoryTest {
@@ -108,5 +110,51 @@ class ScheduleRepositoryTest {
     void findAll() {
         List<Schedule> all = scheduleRepository.findAll();
         assertNotNull(all);
+    }
+
+    @Test
+    void findByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter() {
+
+        Schedule schedule1 = Schedule.builder()
+            .startDatetime(Instant.parse("2024-04-25T09:30:00Z"))
+            .endDatetime(Instant.parse("2024-04-25T10:10:00Z"))
+            .name("schedule1")
+            .organizerId(1)
+            .type(ScheduleType.PERSONAL)
+            .isPublic(true)
+            .build();
+
+        Attendee attendee1 = Attendee.builder()
+            .memberId(1)
+            .isRequired(true)
+            .status(AttendeeStatus.ACCEPTED)
+            .schedule(schedule1)
+            .build();
+        Attendee attendee2 = Attendee.builder()
+            .memberId(2)
+            .isRequired(true)
+            .status(AttendeeStatus.ACCEPTED)
+            .schedule(schedule1)
+            .build();
+        Attendee attendee3 = Attendee.builder()
+            .memberId(3)
+            .isRequired(true)
+            .status(AttendeeStatus.ACCEPTED)
+            .schedule(schedule1)
+            .build();
+
+        schedule1.setAttendees(List.of(attendee1, attendee2, attendee3));
+
+        Schedule save = scheduleRepository.save(schedule1);
+        log.info("save: {}", save.getId());
+
+        Instant start = Instant.parse("2024-04-25T10:00:00Z");
+        Instant end = Instant.parse("2024-04-25T15:00:00Z");
+        List<Schedule> schedules = scheduleRepository.findAcceptedSchedulesByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter(
+            1, start, end);
+
+        assertEquals(1, schedules.size());
+        assertEquals(save.getId(), schedules.get(0).getId());
+        assertEquals("schedule1", schedules.get(0).getName());
     }
 }

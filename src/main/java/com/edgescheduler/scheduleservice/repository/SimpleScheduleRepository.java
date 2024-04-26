@@ -1,13 +1,16 @@
 package com.edgescheduler.scheduleservice.repository;
 
-import com.edgescheduler.scheduleservice.domain.Schedule;
 import com.edgescheduler.scheduleservice.vo.ScheduleVO;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.time.Instant;
 import java.util.List;
+import org.springframework.data.jpa.repository.Query;
 
-public interface SimpleScheduleRepository extends JpaRepository<Schedule, Long>{
+public interface SimpleScheduleRepository {
 
-    List<ScheduleVO> findByMemberIdAndEndDatetimeBeforeAndStartDatetimeAfter(Integer memberId, Instant start, Instant end);
+    @Query("SELECT s FROM Schedule s JOIN s.attendees a "
+        + "WHERE a.id = :memberId "
+        + "AND s.endDatetime > :start "
+        + "AND s.startDatetime < :end")
+    List<ScheduleVO> findByMemberIdAndEndDatetimeBeforeAndStartDatetimeAfter(Integer memberId,
+        Instant start, Instant end);
 }

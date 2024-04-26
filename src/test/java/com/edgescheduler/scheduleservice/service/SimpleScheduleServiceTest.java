@@ -3,11 +3,11 @@ package com.edgescheduler.scheduleservice.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import com.edgescheduler.scheduleservice.domain.Schedule;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
 import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest.CalculatingMember;
-import com.edgescheduler.scheduleservice.repository.SimpleScheduleRepository;
-import com.edgescheduler.scheduleservice.vo.ScheduleVO;
+import com.edgescheduler.scheduleservice.repository.ScheduleRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SimpleScheduleServiceTest {
 
     @Mock
-    private SimpleScheduleRepository scheduleRepository;
+    private ScheduleRepository scheduleRepository;
 
     @Spy
     private SimpleScheduleMediateService simpleScheduleMediateService;
@@ -99,84 +99,88 @@ class SimpleScheduleServiceTest {
         Instant startDatetime = Instant.parse("2024-04-25T10:00:00Z");
         Instant endDatetime = Instant.parse("2024-04-25T13:00:00Z");
 
-        when(scheduleRepository.findByMemberIdAndEndDatetimeBeforeAndStartDatetimeAfter(
-            1, startDatetime, endDatetime
-        )).thenReturn(
+        when(
+            scheduleRepository.findAcceptedSchedulesByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter(
+                1, startDatetime, endDatetime
+            )).thenReturn(
             List.of(
-                new ScheduleVO(
-                    1L,
-                    "schedule1",
-                    ScheduleType.WORKING,
-                    Instant.parse("2024-04-25T10:00:00Z"),
-                    Instant.parse("2024-04-25T13:00:00Z"),
-                    true
-                ),
-                new ScheduleVO(
-                    2L,
-                    "schedule2",
-                    ScheduleType.MEETING,
-                    Instant.parse("2024-04-25T11:00:00Z"),
-                    Instant.parse("2024-04-25T12:00:00Z"),
-                    true
-                )
+                Schedule.builder()
+                    .id(1L)
+                    .name("schedule1")
+                    .type(ScheduleType.WORKING)
+                    .startDatetime(Instant.parse("2024-04-25T10:00:00Z"))
+                    .endDatetime(Instant.parse("2024-04-25T13:00:00Z"))
+                    .isPublic(true)
+                    .build(),
+                Schedule.builder()
+                    .id(2L)
+                    .name("schedule2")
+                    .type(ScheduleType.MEETING)
+                    .startDatetime(Instant.parse("2024-04-25T11:00:00Z"))
+                    .endDatetime(Instant.parse("2024-04-25T12:00:00Z"))
+                    .isPublic(true)
+                    .build()
             )
         );
-        when(scheduleRepository.findByMemberIdAndEndDatetimeBeforeAndStartDatetimeAfter(
-            2, startDatetime, endDatetime
-        )).thenReturn(
+        when(
+            scheduleRepository.findAcceptedSchedulesByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter(
+                2, startDatetime, endDatetime
+            )).thenReturn(
             List.of(
-                new ScheduleVO(
-                    3L,
-                    "schedule3",
-                    ScheduleType.WORKING,
-                    Instant.parse("2024-04-25T09:00:00Z"),
-                    Instant.parse("2024-04-25T12:00:00Z"),
-                    true
-                ),
-                new ScheduleVO(
-                    4L,
-                    "schedule4",
-                    ScheduleType.PERSONAL,
-                    Instant.parse("2024-04-25T11:30:00Z"),
-                    Instant.parse("2024-04-25T12:30:00Z"),
-                    true
-                )
+                Schedule.builder()
+                    .id(3L)
+                    .name("schedule3")
+                    .type(ScheduleType.WORKING)
+                    .startDatetime(Instant.parse("2024-04-25T09:00:00Z"))
+                    .endDatetime(Instant.parse("2024-04-25T12:00:00Z"))
+                    .isPublic(true)
+                    .build(),
+                Schedule.builder()
+                    .id(4L)
+                    .name("schedule4")
+                    .type(ScheduleType.PERSONAL)
+                    .startDatetime(Instant.parse("2024-04-25T11:30:00Z"))
+                    .endDatetime(Instant.parse("2024-04-25T12:30:00Z"))
+                    .isPublic(true)
+                    .build()
             )
         );
-        when(scheduleRepository.findByMemberIdAndEndDatetimeBeforeAndStartDatetimeAfter(
-            3, startDatetime, endDatetime
-        )).thenReturn(
+        when(
+            scheduleRepository.findAcceptedSchedulesByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter(
+                3, startDatetime, endDatetime
+            )).thenReturn(
             List.of(
-                new ScheduleVO(
-                    5L,
-                    "schedule1",
-                    ScheduleType.WORKING,
-                    Instant.parse("2024-04-25T10:30:00Z"),
-                    Instant.parse("2024-04-25T13:00:00Z"),
-                    true
-                )
+                Schedule.builder()
+                    .id(5L)
+                    .name("schedule5")
+                    .type(ScheduleType.WORKING)
+                    .startDatetime(Instant.parse("2024-04-25T10:30:00Z"))
+                    .endDatetime(Instant.parse("2024-04-25T13:00:00Z"))
+                    .isPublic(true)
+                    .build()
             )
         );
-        when(scheduleRepository.findByMemberIdAndEndDatetimeBeforeAndStartDatetimeAfter(
-            4, startDatetime, endDatetime
-        )).thenReturn(
+        when(
+            scheduleRepository.findAcceptedSchedulesByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter(
+                4, startDatetime, endDatetime
+            )).thenReturn(
             List.of(
-                new ScheduleVO(
-                    6L,
-                    "schedule6",
-                    ScheduleType.WORKING,
-                    Instant.parse("2024-04-25T10:00:00Z"),
-                    Instant.parse("2024-04-25T12:30:00Z"),
-                    true
-                ),
-                new ScheduleVO(
-                    2L,
-                    "schedule2",
-                    ScheduleType.PERSONAL,
-                    Instant.parse("2024-04-25T10:00:00Z"),
-                    Instant.parse("2024-04-25T10:45:00Z"),
-                    true
-                )
+                Schedule.builder()
+                    .id(6L)
+                    .name("schedule6")
+                    .type(ScheduleType.WORKING)
+                    .startDatetime(Instant.parse("2024-04-25T10:00:00Z"))
+                    .endDatetime(Instant.parse("2024-04-25T12:30:00Z"))
+                    .isPublic(true)
+                    .build(),
+                Schedule.builder()
+                    .id(7L)
+                    .name("schedule7")
+                    .type(ScheduleType.PERSONAL)
+                    .startDatetime(Instant.parse("2024-04-25T10:00:00Z"))
+                    .endDatetime(Instant.parse("2024-04-25T10:45:00Z"))
+                    .isPublic(true)
+                    .build()
             )
         );
     }
