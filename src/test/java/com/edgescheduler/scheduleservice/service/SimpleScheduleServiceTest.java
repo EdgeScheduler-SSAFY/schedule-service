@@ -33,6 +33,7 @@ class SimpleScheduleServiceTest {
     @InjectMocks
     private SimpleScheduleService simpleScheduleService;
 
+
     @Test
     void calculateAvailabilityTest() {
 
