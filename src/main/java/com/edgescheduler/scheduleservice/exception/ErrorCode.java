@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
 
-    EXAMPLE_ERROR(HttpStatus.BAD_REQUEST, "EX001", "This is an example error");
+    EXAMPLE_ERROR(HttpStatus.BAD_REQUEST, "EX001", "This is an example error"),
+    SCHEDULE_UPDATE_NO_QUALIFICATION_ERROR(HttpStatus.BAD_REQUEST, "SC001", "수정 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
