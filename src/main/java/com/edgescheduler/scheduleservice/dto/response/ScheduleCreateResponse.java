@@ -1,8 +1,9 @@
 package com.edgescheduler.scheduleservice.dto.response;
 
+import lombok.Builder;
 import lombok.Getter;
 
-// INCOMPLETE
+@Builder
 @Getter
 public class ScheduleCreateResponse {
 

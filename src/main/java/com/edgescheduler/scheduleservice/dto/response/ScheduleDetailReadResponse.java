@@ -16,14 +16,17 @@ public class ScheduleDetailReadResponse {
     private String name;
     private String description;
     private ScheduleType type;
+    private Integer color;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
     private List<ScheduleDetailAttendee> attendeeList;
+    private Boolean isPublic;
+    private RecurrenceDetails recurrenceDetails;
 
     @Getter
     @Builder
     public static class ScheduleDetailAttendee {
-        private String memberId;
+        private Long memberId;
         private Boolean isRequired;
         private AttendeeStatus status;
         private String reason;
@@ -36,5 +39,15 @@ public class ScheduleDetailReadResponse {
         private Long proposalId;
         private LocalDateTime startDatetime;
         private LocalDateTime endDatetime;
+    }
+
+    @Getter
+    @Builder
+    public static class RecurrenceDetails {
+        private String freq;
+        private Integer intv;
+        private LocalDateTime expiredDate;
+        private Integer count;
+        private List<String> recurrenceDay;
     }
 }
