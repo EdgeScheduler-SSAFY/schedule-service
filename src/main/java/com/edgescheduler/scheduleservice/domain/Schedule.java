@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotNull;
@@ -61,7 +62,38 @@ public class Schedule {
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
     private List<Attendee> attendees;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @Setter
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "recurrence_id")
     private Recurrence recurrence;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_schedule_id")
+    private Schedule schedule;
+
+    public void updateNotRecurrencePrivateSchedule(Integer organizerId, String name, String description,
+        ScheduleType type, Instant startDatetime, Instant endDatetime, Boolean isPublic,
+        Integer color) {
+        this.organizerId = organizerId;
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
+        this.isPublic = isPublic;
+        this.color = color;
+    }
+
+    public void updateMeetingSchedule(String name, String description,
+        ScheduleType type, Instant startDatetime, Instant endDatetime, Boolean isPublic,
+        Integer color, List<Attendee> attendees){
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
+        this.isPublic = isPublic;
+        this.color = color;
+        this.attendees = attendees;
+    }
 }

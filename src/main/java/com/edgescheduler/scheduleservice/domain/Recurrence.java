@@ -8,11 +8,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Set;
+import java.util.TreeSet;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Builder
 @Getter
@@ -34,6 +39,11 @@ public class Recurrence {
 
     private Integer count;
 
+    @Builder.Default
     @Convert(converter = RecurrenceDaySetConverter.class)
-    private Set<String> recurrenceDay;
+    private Set<String> recurrenceDay = new TreeSet<>();
+
+    public void terminateRecurrence(ZoneId zoneId) {
+        this.expiredDate = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0).atZone(zoneId).withZoneSameInstant(ZoneOffset.UTC).toInstant();
+    }
 }
