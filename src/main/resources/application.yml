@@ -2,11 +2,40 @@ spring:
   application:
     name: schedule-service
   datasource:
-    driver-class-name: com.mysql.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOSTNAME}:${MYSQL_PORT}/${MYSQL_DATABASE}
     username: root
     password: ${MYSQL_ROOT_PASSWORD}
+  kafka:
+    bootstrap-servers:
+      - ${KAFKA_BOOTSTRAP_SERVER_1}
+      - ${KAFKA_BOOTSTRAP_SERVER_2}
+      - ${KAFKA_BOOTSTRAP_SERVER_3}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  cloud:
+    discovery:
+      enabled: false
   config:
     import:
       - optional:env.yml
       - optional:jpa.yml
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  cloud:
+    discovery:
+      enabled: true
+server:
+  port: 8301
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:localhost}
+  instance:
+    hostname: ${SERVER_HOST:localhost}
