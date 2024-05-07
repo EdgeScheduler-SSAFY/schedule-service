@@ -1,0 +1,14 @@
+services:
+  schedule-app:
+    container_name: schedule-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8301:8301
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    external: true
