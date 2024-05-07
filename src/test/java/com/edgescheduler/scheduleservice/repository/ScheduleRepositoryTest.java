@@ -40,6 +40,7 @@ class ScheduleRepositoryTest {
             .endDatetime(Instant.parse("2024-04-24T11:00:00Z"))
             .googleCalendarId("googleCalendarId1")
             .isPublic(true)
+            .isDeleted(false)
             .build();
 
         int member1Id = 1;
@@ -75,7 +76,14 @@ class ScheduleRepositoryTest {
 
         assertAll(
             () -> assertEquals(3, savedSchedule.getAttendees().size()),
-            () -> assertEquals(1, scheduleRepository.findAll().size())
+            () -> assertEquals(schedule.getName(), savedSchedule.getName()),
+            () -> assertEquals(schedule.getDescription(), savedSchedule.getDescription()),
+            () -> assertEquals(schedule.getType(), savedSchedule.getType()),
+            () -> assertEquals(schedule.getColor(), savedSchedule.getColor()),
+            () -> assertEquals(schedule.getStartDatetime(), savedSchedule.getStartDatetime()),
+            () -> assertEquals(schedule.getEndDatetime(), savedSchedule.getEndDatetime()),
+            () -> assertEquals(schedule.getIsPublic(), savedSchedule.getIsPublic()),
+            () -> assertEquals(schedule.getIsDeleted(), savedSchedule.getIsDeleted())
         );
     }
 
@@ -92,6 +100,7 @@ class ScheduleRepositoryTest {
             .endDatetime(Instant.parse("2024-04-24T11:00:00Z"))
             .googleCalendarId("googleCalendarId1")
             .isPublic(true)
+            .isDeleted(false)
             .build();
         Schedule sc = scheduleRepository.save(schedule);
 
@@ -122,6 +131,8 @@ class ScheduleRepositoryTest {
             .endDatetime(Instant.parse("2024-04-25T10:10:00Z"))
             .name("schedule1")
             .organizerId(1)
+            .color(2)
+            .isDeleted(false)
             .type(ScheduleType.PERSONAL)
             .isPublic(true)
             .build();
