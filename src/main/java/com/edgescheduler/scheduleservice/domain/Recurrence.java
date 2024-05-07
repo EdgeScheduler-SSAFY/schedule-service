@@ -7,17 +7,15 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.EnumSet;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Builder
 @Getter
@@ -31,19 +29,20 @@ public class Recurrence {
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @NotNull
     private RecurrenceFreqType freq;
 
+    @NotNull
     private Integer intv;
 
     private Instant expiredDate;
 
     private Integer count;
 
-    @Builder.Default
     @Convert(converter = RecurrenceDaySetConverter.class)
-    private Set<String> recurrenceDay = new TreeSet<>();
+    private EnumSet<RecurrenceDayType> recurrenceDay;
 
-    public void terminateRecurrence(ZoneId zoneId) {
-        this.expiredDate = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0).atZone(zoneId).withZoneSameInstant(ZoneOffset.UTC).toInstant();
+    public void terminateRecurrenceByDate(LocalDateTime datetime) {
+        this.expiredDate = datetime.toLocalDate().atStartOfDay().toInstant(ZoneOffset.UTC);
     }
 }

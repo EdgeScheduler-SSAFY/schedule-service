@@ -1,7 +1,9 @@
 package com.edgescheduler.scheduleservice.dto.request;
 
+import com.edgescheduler.scheduleservice.domain.RecurrenceDayType;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,7 +34,7 @@ public class ScheduleUpdateRequest {
         private Integer intv;
         private LocalDateTime expiredDate;
         private Integer count;
-        private List<String> recurrenceDay;
+        private EnumSet<RecurrenceDayType> recurrenceDay;
     }
 
     @Getter

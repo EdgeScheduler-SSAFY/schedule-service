@@ -1,5 +1,6 @@
 package com.edgescheduler.scheduleservice.domain;
 
+import com.edgescheduler.scheduleservice.util.AlterTimeUtils;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,12 +15,15 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Builder
 @NoArgsConstructor
@@ -58,6 +62,10 @@ public class Schedule {
     @NotNull
     private Integer color;
 
+    @NotNull
+    @ColumnDefault("false")
+    private Boolean isDeleted;
+
     @Setter
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
     private List<Attendee> attendees;
@@ -71,7 +79,8 @@ public class Schedule {
     @JoinColumn(name = "parent_schedule_id")
     private Schedule schedule;
 
-    public void updateNotRecurrencePrivateSchedule(Integer organizerId, String name, String description,
+    public void updateNotRecurrencePrivateSchedule(Integer organizerId, String name,
+        String description,
         ScheduleType type, Instant startDatetime, Instant endDatetime, Boolean isPublic,
         Integer color) {
         this.organizerId = organizerId;
@@ -86,7 +95,7 @@ public class Schedule {
 
     public void updateMeetingSchedule(String name, String description,
         ScheduleType type, Instant startDatetime, Instant endDatetime, Boolean isPublic,
-        Integer color, List<Attendee> attendees){
+        Integer color, List<Attendee> attendees) {
         this.name = name;
         this.description = description;
         this.type = type;
@@ -95,5 +104,11 @@ public class Schedule {
         this.isPublic = isPublic;
         this.color = color;
         this.attendees = attendees;
+    }
+
+    public void changeScheduleTime(LocalDateTime startDatetime, LocalDateTime endDatetime,
+        ZoneId zoneId) {
+        this.startDatetime = AlterTimeUtils.LocalDateTimeToInstant(startDatetime, zoneId);
+        this.endDatetime = AlterTimeUtils.LocalDateTimeToInstant(endDatetime, zoneId);
     }
 }

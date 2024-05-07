@@ -1,6 +1,5 @@
 package com.edgescheduler.scheduleservice.domain;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -44,7 +43,16 @@ public class Attendee {
     @JoinColumn(name = "schedule_id", nullable = false)
     private Schedule schedule;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "proposal_id")
     private Proposal proposal;
+
+    public void updateStatus(AttendeeStatus status, String reason) {
+        this.status = status;
+        this.reason = reason;
+    }
+
+    public void updateProposal(Proposal proposal) {
+        this.proposal = proposal;
+    }
 }

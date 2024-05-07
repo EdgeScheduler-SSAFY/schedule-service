@@ -5,9 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     @Query("SELECT s FROM Schedule s JOIN s.attendees a "
@@ -18,4 +16,10 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findAcceptedSchedulesByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter(
         Integer attendeeId,
         Instant start, Instant end);
+
+    @Query("SELECT s FROM Schedule s WHERE s.schedule = :schedule")
+    List<Schedule> findScheduleByParentSchedule(Schedule schedule);
+
+    @Query("SELECT s FROM Schedule s WHERE s.organizerId = :organizerId AND s.type != 'MEETING'")
+    List<Schedule> findSchedulesExceptMeetingByOrganizerId(Integer organizerId);
 }
