@@ -17,8 +17,8 @@ public class MeetingUpdateMessage extends KafkaEventMessage {
     private String organizerName;
     private LocalDateTime previousStartTime;    // 변경되지 않은 경우 null
     private LocalDateTime previousEndTime;      // 변경되지 않은 경우 null
-    private LocalDateTime updatedStartTime;
-    private LocalDateTime updatedEndTime;
+    private LocalDateTime updatedStartTime;     // 변경되지 않은 경우 원래 시간
+    private LocalDateTime updatedEndTime;       // 변경되지 않은 경우 원래 시간
     private List<Integer> attendeeIds;
     private List<Integer> maintainedAttendeeIds;
     private List<Integer> addedAttendeeIds;
