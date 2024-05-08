@@ -38,6 +38,7 @@ public class AttendeeRepositoryTest {
             .endDatetime(Instant.parse("2024-04-24T11:00:00Z"))
             .googleCalendarId("googleCalendarId1")
             .isPublic(true)
+            .isDeleted(false)
             .build();
 
         int member1Id = 1;
