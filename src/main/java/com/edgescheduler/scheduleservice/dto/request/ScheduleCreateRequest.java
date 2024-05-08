@@ -1,7 +1,7 @@
 package com.edgescheduler.scheduleservice.dto.request;
 
+import com.edgescheduler.scheduleservice.domain.RecurrenceDayType;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
-import com.edgescheduler.scheduleservice.vo.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -15,27 +15,28 @@ public class ScheduleCreateRequest {
     private String name;
     private String description;
     private ScheduleType type;
+    private Integer color;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
     private Boolean isPublic;
-    private Boolean isRepeated;
-    private RepeatDetails repeat;
+    private Boolean isRecurrence;
+    private RecurrenceDetails recurrence;
     private List<ScheduleAttendee> attendeeList;
 
     @Getter
     @Builder
-    public static class RepeatDetails {
+    public static class RecurrenceDetails {
         private String freq;
-        private Integer interval;
+        private Integer intv;
         private LocalDateTime expiredDate;
         private Integer count;
-        private List<DayOfWeek> repeatDay;
+        private List<RecurrenceDayType> recurrenceDay;
     }
 
     @Getter
     @Builder
     public static class ScheduleAttendee {
-        private String memberId;
+        private Integer memberId;
         private Boolean isRequired;
     }
 }

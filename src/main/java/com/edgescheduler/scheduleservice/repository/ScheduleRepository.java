@@ -16,4 +16,10 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findAcceptedSchedulesByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter(
         Integer attendeeId,
         Instant start, Instant end);
+
+    @Query("SELECT s FROM Schedule s WHERE s.schedule = :schedule")
+    List<Schedule> findScheduleByParentSchedule(Schedule schedule);
+
+    @Query("SELECT s FROM Schedule s WHERE s.organizerId = :organizerId AND s.type != 'MEETING'")
+    List<Schedule> findSchedulesExceptMeetingByOrganizerId(Integer organizerId);
 }

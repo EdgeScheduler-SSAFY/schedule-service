@@ -22,7 +22,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 public class Attendee {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
@@ -41,7 +43,16 @@ public class Attendee {
     @JoinColumn(name = "schedule_id", nullable = false)
     private Schedule schedule;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @JoinColumn(name = "proposal_id")
     private Proposal proposal;
+
+    public void updateStatus(AttendeeStatus status, String reason) {
+        this.status = status;
+        this.reason = reason;
+    }
+
+    public void updateProposal(Proposal proposal) {
+        this.proposal = proposal;
+    }
 }
