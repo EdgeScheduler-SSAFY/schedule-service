@@ -1,5 +1,6 @@
 package com.edgescheduler.scheduleservice.dto.request;
 
+import com.edgescheduler.scheduleservice.domain.RecurrenceDayType;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,7 +30,7 @@ public class ScheduleCreateRequest {
         private Integer intv;
         private LocalDateTime expiredDate;
         private Integer count;
-        private List<String> recurrenceDay;
+        private List<RecurrenceDayType> recurrenceDay;
     }
 
     @Getter

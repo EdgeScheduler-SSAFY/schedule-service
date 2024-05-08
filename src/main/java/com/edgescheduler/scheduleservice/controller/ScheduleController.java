@@ -1,7 +1,10 @@
 package com.edgescheduler.scheduleservice.controller;
 
 import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
+import com.edgescheduler.scheduleservice.dto.request.ChangeScheduleTimeRequest;
+import com.edgescheduler.scheduleservice.dto.request.DecideAttendanceRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
+import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
@@ -47,16 +50,17 @@ public class ScheduleController {
         @RequestHeader(name = "authId", defaultValue = "1") Integer memberId,
         @PathVariable Long id
     ) {
-        var response = scheduleService.getSchedule(memberId,id);
+        var response = scheduleService.getSchedule(memberId, id);
         return ResponseEntity.ok(response);
     }
 
     // TODO: 기간별 일정 조회
     @GetMapping("/period")
     public ResponseEntity<ScheduleListReadResponse> getSchedulesByPeriod(
+        @RequestHeader(name = "authId", defaultValue = "1") Integer memberId,
         @RequestParam(required = true) LocalDateTime startDatetime,
         @RequestParam(required = true) LocalDateTime endDatetime) {
-        var scheduleListReadResponse = scheduleService.getScheduleByPeriod(startDatetime,
+        var scheduleListReadResponse = scheduleService.getScheduleByPeriod(memberId, startDatetime,
             endDatetime);
         return ResponseEntity.ok(scheduleListReadResponse);
     }
@@ -73,9 +77,11 @@ public class ScheduleController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSchedule(
-        @PathVariable Long id
+        @RequestHeader(name = "authId") Integer memberId,
+        @PathVariable Long id,
+        @RequestBody ScheduleDeleteRequest scheduleDeleteRequest
     ) {
-        scheduleService.deleteSchedule(id);
+        scheduleService.deleteSchedule(memberId, id, scheduleDeleteRequest);
         return ResponseEntity.noContent().build();
     }
 
@@ -85,5 +91,25 @@ public class ScheduleController {
     ) {
         var response = scheduleService.calculateAvailability(calculateAvailabilityRequest);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{scheduleId}/members/attendance")
+    public ResponseEntity<Void> decideAttendance(
+        @PathVariable Long scheduleId,
+        @RequestHeader(name = "authId") Integer memberId,
+        @RequestBody DecideAttendanceRequest decideAttendanceRequest
+    ) {
+        scheduleService.decideAttendance(scheduleId, memberId, decideAttendanceRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{scheduleId}/change/time")
+    public ResponseEntity<Void> changeScheduleTime(
+        @PathVariable Long scheduleId,
+        @RequestHeader(name = "authId") Integer memberId,
+        @RequestBody ChangeScheduleTimeRequest changeScheduleTimeRequest
+    ) {
+        scheduleService.changeScheduleTime(memberId, scheduleId, changeScheduleTimeRequest);
+        return ResponseEntity.ok().build();
     }
 }

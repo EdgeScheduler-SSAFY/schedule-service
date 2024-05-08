@@ -24,5 +24,14 @@ public class ScheduleListReadResponse {
         private LocalDateTime startDatetime;
         private LocalDateTime endDatetime;
         private Boolean isPublic;
+        private MeetingScheduleDetail meetingDetail;
+
+        @Builder
+        @Getter
+        public static class MeetingScheduleDetail {
+            private Boolean isRequired;
+            private String status;
+            private String reason;
+        }
     }
 }

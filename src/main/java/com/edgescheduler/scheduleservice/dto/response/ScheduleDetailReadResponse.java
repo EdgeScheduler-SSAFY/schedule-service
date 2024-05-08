@@ -1,8 +1,10 @@
 package com.edgescheduler.scheduleservice.dto.response;
 
 import com.edgescheduler.scheduleservice.domain.AttendeeStatus;
+import com.edgescheduler.scheduleservice.domain.RecurrenceDayType;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +28,7 @@ public class ScheduleDetailReadResponse {
     @Getter
     @Builder
     public static class ScheduleDetailAttendee {
-        private Long memberId;
+        private Integer memberId;
         private Boolean isRequired;
         private AttendeeStatus status;
         private String reason;
@@ -48,6 +50,6 @@ public class ScheduleDetailReadResponse {
         private Integer intv;
         private LocalDateTime expiredDate;
         private Integer count;
-        private List<String> recurrenceDay;
+        private EnumSet<RecurrenceDayType> recurrenceDay;
     }
 }
