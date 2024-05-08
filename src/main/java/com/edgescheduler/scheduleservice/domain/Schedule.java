@@ -1,6 +1,5 @@
 package com.edgescheduler.scheduleservice.domain;
 
-import com.edgescheduler.scheduleservice.util.AlterTimeUtils;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,8 +14,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -106,9 +103,9 @@ public class Schedule {
         this.attendees = attendees;
     }
 
-    public void changeScheduleTime(LocalDateTime startDatetime, LocalDateTime endDatetime,
-        ZoneId zoneId) {
-        this.startDatetime = AlterTimeUtils.LocalDateTimeToInstant(startDatetime, zoneId);
-        this.endDatetime = AlterTimeUtils.LocalDateTimeToInstant(endDatetime, zoneId);
+    public void changeScheduleTime(Instant startDatetime, Instant endDatetime
+    ) {
+        this.startDatetime = startDatetime;
+        this.endDatetime = endDatetime;
     }
 }

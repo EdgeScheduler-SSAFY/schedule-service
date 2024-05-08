@@ -1,5 +1,8 @@
 package com.edgescheduler.scheduleservice.service;
 
+import static com.edgescheduler.scheduleservice.util.AlterTimeUtils.LocalDateTimeToUTCLocalDateTime;
+
+import com.edgescheduler.scheduleservice.client.UserServiceClient;
 import com.edgescheduler.scheduleservice.domain.Attendee;
 import com.edgescheduler.scheduleservice.domain.AttendeeStatus;
 import com.edgescheduler.scheduleservice.domain.Proposal;
@@ -9,9 +12,9 @@ import com.edgescheduler.scheduleservice.domain.RecurrenceFreqType;
 import com.edgescheduler.scheduleservice.domain.Schedule;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
-import com.edgescheduler.scheduleservice.dto.request.ChangeScheduleTimeRequest;
 import com.edgescheduler.scheduleservice.dto.request.DecideAttendanceRequest;
 import com.edgescheduler.scheduleservice.dto.request.DeletedSchedule;
+import com.edgescheduler.scheduleservice.dto.request.ResponseScheduleProposal;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest.ScheduleAttendee;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest;
@@ -30,7 +33,16 @@ import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse.IndividualSchedule;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse.IndividualSchedule.MeetingScheduleDetail;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleUpdateResponse;
+import com.edgescheduler.scheduleservice.dto.response.UserInfoResponse;
 import com.edgescheduler.scheduleservice.exception.ErrorCode;
+import com.edgescheduler.scheduleservice.message.AttendeeProposalMessage;
+import com.edgescheduler.scheduleservice.message.AttendeeResponseMessage;
+import com.edgescheduler.scheduleservice.message.KafkaEventMessage;
+import com.edgescheduler.scheduleservice.message.MeetingCreateMessage;
+import com.edgescheduler.scheduleservice.message.MeetingDeleteMessage;
+import com.edgescheduler.scheduleservice.message.MeetingUpdateMessage;
+import com.edgescheduler.scheduleservice.message.MeetingUpdateMessage.UpdatedField;
+import com.edgescheduler.scheduleservice.message.Response;
 import com.edgescheduler.scheduleservice.repository.AttendeeRepository;
 import com.edgescheduler.scheduleservice.repository.MemberTimezoneRepository;
 import com.edgescheduler.scheduleservice.repository.ProposalRepository;
@@ -53,8 +65,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.PriorityQueue;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SimpleScheduleService implements ScheduleService {
@@ -65,6 +79,8 @@ public class SimpleScheduleService implements ScheduleService {
     private final AttendeeRepository attendeeRepository;
     private final RecurrenceRepository recurrenceRepository;
     private final ProposalRepository proposalRepository;
+    private final KafkaProducer kafkaProducer;
+    private final UserServiceClient userServiceClient;
 
     @Override
     @Transactional
@@ -120,6 +136,23 @@ public class SimpleScheduleService implements ScheduleService {
                         .memberId(attendee.getMemberId()).status(AttendeeStatus.PENDING)
                         .schedule(saveSchedule).build()).forEach(attendeeRepository::save);
             }
+            List<Integer> attendeeIds = new ArrayList<>();
+            for (ScheduleAttendee attendee : attendeeList) {
+                attendeeIds.add(attendee.getMemberId());
+            }
+            UserInfoResponse response = userServiceClient.getUserName(
+                saveSchedule.getOrganizerId());
+            KafkaEventMessage message = MeetingCreateMessage.builder()
+                .occurredAt(LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
+                .scheduleId(saveSchedule.getId())
+                .organizerId(saveSchedule.getOrganizerId())
+                .organizerName(response != null ? response.getName() : null)
+                .startTime(
+                    LocalDateTime.ofInstant(saveSchedule.getStartDatetime(), ZoneId.of("UTC")))
+                .endTime(LocalDateTime.ofInstant(saveSchedule.getEndDatetime(), ZoneId.of("UTC")))
+                .attendeeIds(attendeeIds)
+                .build();
+            kafkaProducer.send("meeting-created", message);
         }
         return ScheduleCreateResponse.builder().scheduleId(saveSchedule.getId()).build();
     }
@@ -128,10 +161,11 @@ public class SimpleScheduleService implements ScheduleService {
     public ScheduleDetailReadResponse getSchedule(Integer memberId, Long id) {
         // 해당 일정 조회
         Schedule schedule = scheduleRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("null"));
+            .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
         // 조회하는 사람 기준의 시간대
         ZoneId zoneId = ZoneId.of(memberTimezoneRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException("null")).getZoneId());
+            .orElseThrow(ErrorCode.TIMEZONE_NOT_FOUND::build).getZoneId());
+
         List<Attendee> attendees = attendeeRepository.findBySchedule(schedule);
         List<ScheduleDetailAttendee> attendeeList = new ArrayList<>();
         // 일정 공유하는 사람이 있는 경우
@@ -147,8 +181,11 @@ public class SimpleScheduleService implements ScheduleService {
                             AlterTimeUtils.instantToLocalDateTime(
                                 attendee.getProposal().getEndDatetime(), zoneId)).build();
                 }
+                UserInfoResponse response = userServiceClient.getUserName(attendee.getMemberId());
                 ScheduleDetailAttendee attendeeDetail = ScheduleDetailAttendee.builder()
-                    .memberId(attendee.getMemberId()).isRequired(attendee.getIsRequired())
+                    .memberId(attendee.getMemberId())
+                    .memberName(response != null ? response.getName() : null)
+                    .isRequired(attendee.getIsRequired())
                     .status(attendee.getStatus()).reason(attendee.getReason())
                     .proposal(scheduleProposal).build();
 
@@ -158,8 +195,6 @@ public class SimpleScheduleService implements ScheduleService {
 
         ScheduleDetailReadResponse.RecurrenceDetails recurrenceDetails = null;
         if (schedule.getRecurrence() != null) {
-            EnumSet<RecurrenceDayType> recurrenceDay = EnumSet.noneOf(RecurrenceDayType.class);
-            ;
             // 반복 요일이 존재하는 일정의 경우
             EnumSet<RecurrenceDayType> recurrenceDays = EnumSet.noneOf(RecurrenceDayType.class);
             schedule.getRecurrence().getRecurrenceDay().forEach(
@@ -787,7 +822,6 @@ public class SimpleScheduleService implements ScheduleService {
         Boolean nameIsChanged = scheduleRequest.getNameIsChanged();
         Boolean descriptionIsChanged = scheduleRequest.getDescriptionIsChanged();
         Boolean timeIsChanged = scheduleRequest.getTimeIsChanged();
-        Boolean attendeeIsChanged = scheduleRequest.getAttendeeIsChanged();
 
         ZoneId zoneId = ZoneId.of(
             memberTimezoneRepository.findById(memberId).orElseThrow().getZoneId());
@@ -899,7 +933,48 @@ public class SimpleScheduleService implements ScheduleService {
         attendeeRepository.deleteAll(originalAttendeeList);
         // 참석자 명단 추가
         attendeeRepository.saveAll(newAttendeeList);
+        UserInfoResponse response = userServiceClient.getUserName(organizerId);
+        MeetingUpdateMessage message = MeetingUpdateMessage.builder()
+            .occurredAt(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
+            .scheduleId(scheduleId)
+            .scheduleName(savedSchedule.getName())
+            .organizerId(savedSchedule.getOrganizerId())
+            .organizerName(response != null ? response.getName() : null)
+            .previousStartTime(null)
+            .previousEndTime(null)
+            .updatedStartTime(
+                AlterTimeUtils.InstantToUTCLocalDateTime(savedSchedule.getStartDatetime()))
+            .updatedEndTime(
+                AlterTimeUtils.InstantToUTCLocalDateTime(savedSchedule.getEndDatetime()))
+            .maintainedAttendeeIds(maintainedMemberList)
+            .addedAttendeeIds(addMemberList)
+            .removedAttendeeIds(cancelMemberList)
+            .updatedFields(null)
+            .build();
 
+        List<UpdatedField> updatedFields = new ArrayList<>();
+
+        if (nameIsChanged != null && nameIsChanged) {
+            updatedFields.add(UpdatedField.TITLE);
+        }
+
+        if (descriptionIsChanged != null && descriptionIsChanged) {
+            updatedFields.add(UpdatedField.DESCRIPTION);
+        }
+
+        if (timeIsChanged != null && timeIsChanged) {
+            updatedFields.add(UpdatedField.TIME);
+            message.setPreviousStartTime(
+                AlterTimeUtils.InstantToUTCLocalDateTime(savedSchedule.getStartDatetime()));
+            message.setPreviousEndTime(
+                AlterTimeUtils.InstantToUTCLocalDateTime(savedSchedule.getEndDatetime()));
+            message.setUpdatedStartTime(AlterTimeUtils.InstantToUTCLocalDateTime(startInstant));
+            message.setUpdatedEndTime(AlterTimeUtils.InstantToUTCLocalDateTime(endInstant));
+        }
+
+        message.setUpdatedFields(updatedFields);
+
+        kafkaProducer.send("meeting-updated", message);
         return ScheduleUpdateResponse.builder().scheduleId(savedSchedule.getId()).build();
     }
 
@@ -932,6 +1007,19 @@ public class SimpleScheduleService implements ScheduleService {
             }
             // 일정 삭제
             scheduleRepository.delete(schedule);
+            UserInfoResponse response = userServiceClient.getUserName(schedule.getOrganizerId());
+            MeetingDeleteMessage message = MeetingDeleteMessage.builder()
+                .occurredAt(
+                    AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
+                .scheduleId(id)
+                .scheduleName(schedule.getName())
+                .organizerId(schedule.getOrganizerId())
+                .organizerName(response != null ? response.getName() : null)
+                .startTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getStartDatetime()))
+                .endTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getEndDatetime()))
+                .attendeeIds(attendeeList.stream().map(Attendee::getMemberId).toList())
+                .build();
+            kafkaProducer.send("meeting-deleted", message);
             return;
         }
 
@@ -1050,7 +1138,7 @@ public class SimpleScheduleService implements ScheduleService {
     @Transactional
     public void decideAttendance(Long scheduleId, Integer memberId,
         DecideAttendanceRequest decideAttendanceRequest) {
-
+        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
         Attendee attendee = attendeeRepository.findByScheduleIdAndMemberId(scheduleId, memberId)
             .orElseThrow();
         String reason = decideAttendanceRequest.getReason();
@@ -1059,6 +1147,25 @@ public class SimpleScheduleService implements ScheduleService {
         AttendeeStatus status = decideAttendanceRequest.getStatus();
 
         attendee.updateStatus(status, reason);
+        UserInfoResponse response = userServiceClient.getUserName(memberId);
+        AttendeeResponseMessage message = AttendeeResponseMessage.builder()
+            .occurredAt(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
+            .scheduleId(scheduleId)
+            .scheduleName(schedule.getName())
+            .organizerId(schedule.getOrganizerId())
+            .attendeeName(response != null ? response.getName() : null)
+            .build();
+
+        // 수락시
+        if (status.equals(AttendeeStatus.ACCEPTED)) {
+            message.setResponse(Response.ACCEPTED);
+            // 거절시
+        } else if (status.equals(AttendeeStatus.DECLINED)) {
+            message.setResponse(Response.DECLINED);
+        }
+
+        kafkaProducer.send("attendee-response", message);
+
         if (decideAttendanceRequest.getStartDatetime() != null) {
             Proposal proposal = Proposal.builder()
                 .startDatetime(AlterTimeUtils.LocalDateTimeToInstant(
@@ -1068,6 +1175,21 @@ public class SimpleScheduleService implements ScheduleService {
                 .build();
             Proposal savedProposal = proposalRepository.save(proposal);
             attendee.updateProposal(savedProposal);
+
+            AttendeeProposalMessage proposalMessage = AttendeeProposalMessage.builder()
+                .occurredAt(
+                    AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
+                .scheduleId(scheduleId)
+                .scheduleName(schedule.getName())
+                .organizerId(schedule.getOrganizerId())
+                .attendeeName(response != null ? response.getName() : null)
+                .proposedStartTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
+                    decideAttendanceRequest.getStartDatetime(), zoneId))
+                .proposedEndTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
+                    decideAttendanceRequest.getEndDatetime(), zoneId))
+                .reason(decideAttendanceRequest.getReason())
+                .build();
+            kafkaProducer.send("attendee-proposal", proposalMessage);
         }
     }
 
@@ -1106,26 +1228,56 @@ public class SimpleScheduleService implements ScheduleService {
 
     @Override
     @Transactional
-    public void changeScheduleTime(Integer memberId, Long scheduleId,
-        ChangeScheduleTimeRequest changeScheduleTimeRequest) {
-
-        ZoneId zoneId = ZoneId.of(
-            memberTimezoneRepository.findById(memberId).orElseThrow().getZoneId());
-
-        LocalDateTime startDatetime = changeScheduleTimeRequest.getStartDatetime();
-        LocalDateTime endDatetime = changeScheduleTimeRequest.getEndDatetime();
-
+    public void responseScheduleProposal(Long scheduleId, Integer memberId, Long proposalId,
+        ResponseScheduleProposal responseScheduleProposal) {
         Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow();
+        // 주최자가 아니면 에러
         validateOrganizer(schedule, memberId);
-        // 일정 시간 수정
-        schedule.changeScheduleTime(startDatetime, endDatetime, zoneId);
-        // 일정에 제안한 데이터 조회 및 삭제
+        // 기존 회의 시간
+        Instant originalStartInstant = schedule.getStartDatetime();
+        Instant originalEndInstant = schedule.getEndDatetime();
+        // 기존 멤버
         List<Attendee> attendeeList = attendeeRepository.findBySchedule(schedule);
-        for (Attendee a : attendeeList) {
-            if (a.getProposal() != null) {
-                Proposal proposal = a.getProposal();
-                attendeeRepository.deleteProposalBySchedule(schedule);
-                proposalRepository.delete(proposal);
+
+        // 수락여부
+        Boolean isAccept = responseScheduleProposal.getIsAccepted();
+        Proposal proposal = proposalRepository.findById(proposalId).orElseThrow();
+        // 제안 거절시
+        if (!isAccept) {
+            attendeeRepository.deleteOneProposalByProposal(proposal);
+            proposalRepository.delete(proposal);
+            // 제안 수락시
+        } else {
+            // 회의 시간 수정
+            Instant startInstant = proposal.getStartDatetime();
+            Instant endInstant = proposal.getEndDatetime();
+            schedule.changeScheduleTime(startInstant, endInstant);
+            // 회의 주체자 이름 
+            UserInfoResponse response = userServiceClient.getUserName(memberId);
+            MeetingUpdateMessage message = MeetingUpdateMessage.builder()
+                .occurredAt(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(),
+                    ZoneId.of(
+                        memberTimezoneRepository.findById(memberId).orElseThrow().getZoneId())))
+                .scheduleId(scheduleId)
+                .scheduleName(schedule.getName())
+                .organizerId(schedule.getOrganizerId())
+                .organizerName(response.getName())
+                .previousStartTime(AlterTimeUtils.InstantToUTCLocalDateTime(originalStartInstant))
+                .previousEndTime(AlterTimeUtils.InstantToUTCLocalDateTime(originalEndInstant))
+                .updatedStartTime(AlterTimeUtils.InstantToUTCLocalDateTime(startInstant))
+                .updatedEndTime(AlterTimeUtils.InstantToUTCLocalDateTime(endInstant))
+                .maintainedAttendeeIds(attendeeList.stream().map(Attendee::getMemberId).toList())
+                .updatedFields(List.of(UpdatedField.TIME))
+                .build();
+            // 수정 사항 전송
+            kafkaProducer.send("meeting-updated", message);
+            // 나머지 제안 다 삭제
+            attendeeRepository.deleteAllProposalBySchedule(schedule);
+            for (Attendee a : attendeeList) {
+                if (a.getProposal() != null) {
+                    Proposal proposals = a.getProposal();
+                    proposalRepository.delete(proposals);
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.edgescheduler.scheduleservice.repository;
 
 import com.edgescheduler.scheduleservice.domain.Attendee;
+import com.edgescheduler.scheduleservice.domain.Proposal;
 import com.edgescheduler.scheduleservice.domain.Schedule;
 import java.util.List;
 import java.util.Optional;
@@ -18,5 +19,10 @@ public interface AttendeeRepository extends JpaRepository<Attendee, Long> {
 
     @Modifying
     @Query("UPDATE Attendee a SET a.proposal = NULL WHERE a.schedule = :schedule")
-    void deleteProposalBySchedule(Schedule schedule);
+    void deleteAllProposalBySchedule(Schedule schedule);
+
+    @Modifying
+    @Query("UPDATE Attendee a SET a.proposal = NULL WHERE a.proposal = :proposal")
+    void deleteOneProposalByProposal(Proposal proposal);
+
 }

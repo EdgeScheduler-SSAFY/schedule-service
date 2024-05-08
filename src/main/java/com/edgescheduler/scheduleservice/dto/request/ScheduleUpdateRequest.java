@@ -23,7 +23,6 @@ public class ScheduleUpdateRequest {
     private Boolean nameIsChanged;
     private Boolean descriptionIsChanged;
     private Boolean timeIsChanged;
-    private Boolean attendeeIsChanged;
     private RecurrenceDetails recurrence;
     private List<ScheduleAttendee> attendeeList;
 

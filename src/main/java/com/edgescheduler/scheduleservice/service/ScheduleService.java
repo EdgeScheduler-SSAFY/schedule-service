@@ -1,7 +1,7 @@
 package com.edgescheduler.scheduleservice.service;
 
 import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
-import com.edgescheduler.scheduleservice.dto.request.ChangeScheduleTimeRequest;
+import com.edgescheduler.scheduleservice.dto.request.ResponseScheduleProposal;
 import com.edgescheduler.scheduleservice.dto.request.DecideAttendanceRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest;
@@ -35,6 +35,5 @@ public interface ScheduleService {
     void decideAttendance(Long scheduleId, Integer memberId,
         DecideAttendanceRequest decideAttendanceRequest);
 
-    void changeScheduleTime(Integer memberId, Long scheduleId,
-        ChangeScheduleTimeRequest changeScheduleTimeRequest);
+    void responseScheduleProposal(Long scheduleId, Integer memberId, Long proposalId, ResponseScheduleProposal responseScheduleProposal);
 }

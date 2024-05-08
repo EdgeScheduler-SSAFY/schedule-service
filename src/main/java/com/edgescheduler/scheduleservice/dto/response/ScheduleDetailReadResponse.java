@@ -29,6 +29,7 @@ public class ScheduleDetailReadResponse {
     @Builder
     public static class ScheduleDetailAttendee {
         private Integer memberId;
+        private String memberName;
         private Boolean isRequired;
         private AttendeeStatus status;
         private String reason;

@@ -8,6 +8,7 @@ public enum ErrorCode {
 
     EXAMPLE_ERROR(HttpStatus.BAD_REQUEST, "EX001", "This is an example error"),
     SCHEDULE_UPDATE_NO_QUALIFICATION_ERROR(HttpStatus.BAD_REQUEST, "SC001", "수정 권한이 없습니다."),
+    SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "SC002", "일정을 찾을 수 없습니다."),
     TIMEZONE_NOT_FOUND(HttpStatus.BAD_REQUEST, "TZ001", "ZoneId를 찾을 수 없습니다.");
     private final HttpStatus httpStatus;
     private final String code;

@@ -20,4 +20,13 @@ public class AlterTimeUtils {
         ZonedDateTime zonedDateTime = instant.atZone(zoneId);
         return zonedDateTime.toLocalDateTime();
     }
+
+    public static LocalDateTime LocalDateTimeToUTCLocalDateTime(LocalDateTime localDateTime, ZoneId zoneId) {
+        return localDateTime.atZone(zoneId)
+            .withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    }
+
+    public static LocalDateTime InstantToUTCLocalDateTime(Instant instant) {
+        return LocalDateTime.ofInstant(instant, ZoneId.of("UTC"));
+    }
 }
