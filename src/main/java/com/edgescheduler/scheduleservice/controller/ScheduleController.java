@@ -13,6 +13,7 @@ import com.edgescheduler.scheduleservice.dto.response.ScheduleUpdateResponse;
 import com.edgescheduler.scheduleservice.service.ScheduleService;
 import java.net.URI;
 import java.time.LocalDateTime;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,9 +29,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/schedules")
+@RequiredArgsConstructor
 public class ScheduleController {
 
-    private ScheduleService scheduleService;
+    private final ScheduleService scheduleService;
 
     @PostMapping
     public ResponseEntity<ScheduleCreateResponse> createSchedule(
