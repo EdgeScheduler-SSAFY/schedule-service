@@ -197,12 +197,18 @@ public class SimpleScheduleService implements ScheduleService {
         if (schedule.getRecurrence() != null) {
             // 반복 요일이 존재하는 일정의 경우
             EnumSet<RecurrenceDayType> recurrenceDays = EnumSet.noneOf(RecurrenceDayType.class);
-            schedule.getRecurrence().getRecurrenceDay().forEach(
-                day -> recurrenceDays.add(RecurrenceDayType.valueOf(String.valueOf(day))));
-            LocalDateTime expiredDatetime = AlterTimeUtils.instantToLocalDateTime(
-                schedule.getRecurrence().getExpiredDate(), zoneId);
+            if (schedule.getRecurrence().getRecurrenceDay() != null) {
+                schedule.getRecurrence().getRecurrenceDay().forEach(
+                    day -> recurrenceDays.add(RecurrenceDayType.valueOf(String.valueOf(day))));
+            }
+            LocalDateTime expiredDatetime = null;
+            if (schedule.getRecurrence().getExpiredDate() != null) {
+                expiredDatetime = AlterTimeUtils.instantToLocalDateTime(
+                    schedule.getRecurrence().getExpiredDate(), zoneId);
+            }
             recurrenceDetails = ScheduleDetailReadResponse.RecurrenceDetails.builder()
-                .count(schedule.getRecurrence().getCount()).intv(schedule.getRecurrence().getIntv())
+                .count(schedule.getRecurrence().getCount() != null ? schedule.getRecurrence()
+                    .getCount() : null).intv(schedule.getRecurrence().getIntv())
                 .expiredDate(expiredDatetime)
                 .recurrenceDay(recurrenceDays)
                 .freq(String.valueOf(schedule.getRecurrence().getFreq())).build();
