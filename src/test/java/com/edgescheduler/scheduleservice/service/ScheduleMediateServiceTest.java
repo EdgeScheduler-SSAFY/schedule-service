@@ -1,136 +1,197 @@
 package com.edgescheduler.scheduleservice.service;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static com.edgescheduler.scheduleservice.vo.IntervalStatus.AVAILABLE;
+import static com.edgescheduler.scheduleservice.vo.IntervalStatus.AVAILABLE_IN_WORKING_HOURS;
+import static com.edgescheduler.scheduleservice.vo.IntervalStatus.UNAVAILABLE;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-import com.edgescheduler.scheduleservice.domain.ScheduleType;
-import com.edgescheduler.scheduleservice.vo.ScheduleVO;
-import java.time.Instant;
-import java.util.ArrayList;
+import com.edgescheduler.scheduleservice.service.SimpleScheduleService.MeetingRecommendation;
+import com.edgescheduler.scheduleservice.service.SimpleScheduleService.MeetingRecommendation.RecommendType;
+import com.edgescheduler.scheduleservice.vo.IntervalStatus;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
-import org.junit.jupiter.api.BeforeAll;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Spy;
+import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 class ScheduleMediateServiceTest {
 
-    @Spy
-    private SimpleScheduleMediateService scheduleMediateService;
+    @InjectMocks
+    private ScheduleMediateServiceImpl scheduleMediateService;
 
-    private static List<ScheduleVO> schedules;
+    @DisplayName("가장 빠른 회의 시간 추천")
+    @Test
+    void findFastestMeetingTest() {
 
-    @BeforeAll
-    static void setUpSchedules() {
-        /**
-         *  2024-04-10 schedules
-         *  00:00 ~ 05:30 : PERSONAL
-         *  07:10 ~ 08:00 : PERSONAL
-         *  09:00 ~ 18:00 : WORKING     ** available time
-         *  11:00 ~ 13:30 : MEETING
-         *  19:30 ~ 20:30 : PERSONAL
-         *  23:30 ~ 24:00 : PERSONAL
-         */
-        schedules = List.of(new ScheduleVO(1L, "schedule1", ScheduleType.PERSONAL,
-                Instant.parse("2024-04-09T23:30:00Z"), Instant.parse("2024-04-10T05:30:00Z"), true),
-            new ScheduleVO(2L, "schedule2", ScheduleType.PERSONAL,
-                Instant.parse("2024-04-10T07:10:00Z"), Instant.parse("2024-04-10T08:00:00Z"), true),
-            new ScheduleVO(3L, "schedule3", ScheduleType.MEETING,
-                Instant.parse("2024-04-10T11:00:00Z"), Instant.parse("2024-04-10T13:30:00Z"), true),
-            new ScheduleVO(4L, "schedule4", ScheduleType.PERSONAL,
-                Instant.parse("2024-04-10T19:30:00Z"), Instant.parse("2024-04-10T20:30:00Z"), true),
-            new ScheduleVO(5L, "schedule5", ScheduleType.PERSONAL,
-                Instant.parse("2024-04-10T23:30:00Z"), Instant.parse("2024-04-11T05:30:00Z"), true),
-            new ScheduleVO(6L, "schedule6", ScheduleType.WORKING,
-                Instant.parse("2024-04-10T09:00:00Z"), Instant.parse("2024-04-10T18:00:00Z"),
-                true));
+        Map<Integer, IntervalStatus[]> requiredMemberAvailabilityMap = new HashMap<>();
+        Map<Integer, IntervalStatus[]> optionalMemberAvailabilityMap = new HashMap<>();
+
+        requiredMemberAvailabilityMap.put(1,
+            new IntervalStatus[]{UNAVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                UNAVAILABLE, UNAVAILABLE, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE, UNAVAILABLE, UNAVAILABLE, UNAVAILABLE,
+                UNAVAILABLE});
+        requiredMemberAvailabilityMap.put(2,
+            new IntervalStatus[]{UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE});
+
+        optionalMemberAvailabilityMap.put(3,
+            new IntervalStatus[]{AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
+        optionalMemberAvailabilityMap.put(4,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS});
+        optionalMemberAvailabilityMap.put(5,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE,
+                UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS});
+        optionalMemberAvailabilityMap.put(6,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
+        List<Integer> availableMemberIds = List.of(1, 2, 3, 4, 5, 6);
+        availableMemberIds.stream().toList();
+        MeetingRecommendation recommendation = scheduleMediateService.findFastestMeeting(
+            requiredMemberAvailabilityMap, optionalMemberAvailabilityMap,
+            LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
+
+        log.info("recommendation: {}", recommendation);
+
+        assertEquals(RecommendType.FASTEST, recommendation.getRecommendType());
+        assertEquals(LocalDateTime.of(2024, 5, 8, 10, 45), recommendation.getStart());
+        assertEquals(LocalDateTime.of(2024, 5, 8, 11, 30), recommendation.getEnd());
+        assertEquals(3, recommendation.getStartIndex());
+        assertIterableEquals(List.of(1, 2, 3, 4, 6), recommendation.getAvailableMemberIds());
+        assertIterableEquals(List.of(1, 3, 4), recommendation.getAvailableMemberInWorkingHourIds());
     }
 
+    @DisplayName("참여 가능 인원이 가장 많은 회의 시간 추천")
     @Test
-    void isAvailableWithOtherScheduleTest() {
+    void findMostParticipantsMeetingTest() {
 
-        List<Instant> timeTokens = new ArrayList<>();
-        Instant startTime = Instant.parse("2024-04-10T00:00:00Z");
+        Map<Integer, IntervalStatus[]> requiredMemberAvailabilityMap = new HashMap<>();
+        Map<Integer, IntervalStatus[]> optionalMemberAvailabilityMap = new HashMap<>();
 
-        for (int i = 0; i < 96; i++) {
-            timeTokens.add(startTime.plusSeconds(i * 900));
-        }
+        requiredMemberAvailabilityMap.put(1,
+            new IntervalStatus[]{UNAVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                UNAVAILABLE, UNAVAILABLE, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE, UNAVAILABLE, UNAVAILABLE, UNAVAILABLE,
+                UNAVAILABLE});
+        requiredMemberAvailabilityMap.put(2,
+            new IntervalStatus[]{UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE});
 
-        Boolean[] expected = {false, false, false, false,   // 00:00 ~ 01:00
-            false, false, false, false,   // 01:00 ~ 02:00
-            false, false, false, false,   // 02:00 ~ 03:00
-            false, false, false, false,   // 03:00 ~ 04:00
-            false, false, false, false,   // 04:00 ~ 05:00
-            false, false, true, true,     // 05:00 ~ 06:00
-            true, true, true, true,       // 06:00 ~ 07:00
-            false, false, false, false,   // 07:00 ~ 08:00
-            true, true, true, true,       // 08:00 ~ 09:00
-            true, true, true, true,       // 09:00 ~ 10:00
-            true, true, true, true,       // 10:00 ~ 11:00
-            false, false, false, false,   // 11:00 ~ 12:00
-            false, false, false, false,   // 12:00 ~ 13:00
-            false, false, true, true,     // 13:00 ~ 14:00
-            true, true, true, true,       // 14:00 ~ 15:00
-            true, true, true, true,       // 15:00 ~ 16:00
-            true, true, true, true,       // 16:00 ~ 17:00
-            true, true, true, true,       // 17:00 ~ 18:00
-            true, true, true, true,       // 18:00 ~ 19:00
-            true, true, false, false,     // 19:00 ~ 20:00
-            false, false, true, true,     // 20:00 ~ 21:00
-            true, true, true, true,       // 21:00 ~ 22:00
-            true, true, true, true,       // 22:00 ~ 23:00
-            true, true, false, false      // 23:00 ~ 24:00
-        };
+        optionalMemberAvailabilityMap.put(3,
+            new IntervalStatus[]{AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
+        optionalMemberAvailabilityMap.put(4,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS});
+        optionalMemberAvailabilityMap.put(5,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE,
+                UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS});
+        optionalMemberAvailabilityMap.put(6,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
 
-        var availabilities = timeTokens.stream().map(
-            time -> scheduleMediateService.isAvailableWithOtherSchedule(time, time.plusSeconds(900),
-                schedules)).toArray();
+        MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsMeeting(
+            requiredMemberAvailabilityMap, optionalMemberAvailabilityMap,
+            LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
 
-        assertArrayEquals(expected, availabilities);
+        log.info("recommendation: {}", recommendation);
+        assertEquals(RecommendType.MOST_PARTICIPANTS, recommendation.getRecommendType());
+        assertEquals(LocalDateTime.of(2024, 5, 8, 12, 15), recommendation.getStart());
+        assertEquals(LocalDateTime.of(2024, 5, 8, 13, 0), recommendation.getEnd());
+        assertEquals(9, recommendation.getStartIndex());
+        assertIterableEquals(List.of(1, 2, 3, 4, 5, 6), recommendation.getAvailableMemberIds());
+        assertIterableEquals(List.of(1, 4, 5), recommendation.getAvailableMemberInWorkingHourIds());
     }
 
+    @DisplayName("근무 시간에 참여 가능한 인원이 가장 많은 회의 시간 추천")
     @Test
-    void isOnWorkingHourAndAvailableTest() {
+    void findMostParticipantsInWorkingHoursMeetingTest() {
 
-        List<Instant> timeTokens = new ArrayList<>();
-        Instant startTime = Instant.parse("2024-04-10T00:00:00Z");
+        Map<Integer, IntervalStatus[]> requiredMemberAvailabilityMap = new HashMap<>();
+        Map<Integer, IntervalStatus[]> optionalMemberAvailabilityMap = new HashMap<>();
 
-        for (int i = 0; i < 96; i++) {
-            timeTokens.add(startTime.plusSeconds(i * 900));
-        }
+        requiredMemberAvailabilityMap.put(1,
+            new IntervalStatus[]{UNAVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                UNAVAILABLE, UNAVAILABLE, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE, UNAVAILABLE, UNAVAILABLE, UNAVAILABLE,
+                UNAVAILABLE});
+        requiredMemberAvailabilityMap.put(2,
+            new IntervalStatus[]{UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE});
 
-        Boolean[] expected = {
-            false, false, false, false,   // 00:00 ~ 01:00
-            false, false, false, false,   // 01:00 ~ 02:00
-            false, false, false, false,   // 02:00 ~ 03:00
-            false, false, false, false,   // 03:00 ~ 04:00
-            false, false, false, false,   // 04:00 ~ 05:00
-            false, false, false, false,   // 05:00 ~ 06:00
-            false, false, false, false,   // 06:00 ~ 07:00
-            false, false, false, false,   // 07:00 ~ 08:00
-            false, false, false, false,   // 08:00 ~ 09:00
-            true, true, true, true,       // 09:00 ~ 10:00
-            true, true, true, true,       // 10:00 ~ 11:00
-            false, false, false, false,   // 11:00 ~ 12:00
-            false, false, false, false,   // 12:00 ~ 13:00
-            false, false, true, true,     // 13:00 ~ 14:00
-            true, true, true, true,       // 14:00 ~ 15:00
-            true, true, true, true,       // 15:00 ~ 16:00
-            true, true, true, true,       // 16:00 ~ 17:00
-            true, true, true, true,       // 17:00 ~ 18:00
-            false, false, false, false,   // 18:00 ~ 19:00
-            false, false, false, false,   // 19:00 ~ 20:00
-            false, false, false, false,   // 20:00 ~ 21:00
-            false, false, false, false,   // 21:00 ~ 22:00
-            false, false, false, false,   // 22:00 ~ 23:00
-            false, false, false, false,   // 23:00 ~ 24:00
-        };
+        optionalMemberAvailabilityMap.put(3,
+            new IntervalStatus[]{AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
+        optionalMemberAvailabilityMap.put(4,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS});
+        optionalMemberAvailabilityMap.put(5,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE,
+                UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+                AVAILABLE_IN_WORKING_HOURS});
+        optionalMemberAvailabilityMap.put(6,
+            new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
+                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
 
-        var availabilities = timeTokens.stream().map(
-            time -> scheduleMediateService.isOnWorkingHourAndAvailable(time, time.plusSeconds(900),
-                schedules)).toArray();
+        MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsInWorkingHoursMeeting(
+            requiredMemberAvailabilityMap, optionalMemberAvailabilityMap,
+            LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
 
-        assertArrayEquals(expected, availabilities);
+        log.info("recommendation: {}", recommendation);
+        assertEquals(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR,
+            recommendation.getRecommendType());
+        assertEquals(LocalDateTime.of(2024, 5, 8, 10, 45), recommendation.getStart());
+        assertEquals(LocalDateTime.of(2024, 5, 8, 11, 30), recommendation.getEnd());
+        assertEquals(3, recommendation.getStartIndex());
+        assertIterableEquals(List.of(1, 2, 3, 4, 6), recommendation.getAvailableMemberIds());
+        assertIterableEquals(List.of(1, 3, 4), recommendation.getAvailableMemberInWorkingHourIds());
     }
 }

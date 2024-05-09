@@ -11,12 +11,14 @@ public class CalculateAvailabilityRequest {
 
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
-    private Integer runningTime;
+    private Integer organizerId;
+    private Integer runningTime;            // in minutes
     private List<CalculatingMember> memberList;
 
     @Getter
     @Builder
     public static class CalculatingMember {
+
         private Integer memberId;
         private Boolean isRequired;
     }

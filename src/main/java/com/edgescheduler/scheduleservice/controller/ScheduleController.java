@@ -10,6 +10,7 @@ import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleUpdateResponse;
+import com.edgescheduler.scheduleservice.service.ScheduleMediateService;
 import com.edgescheduler.scheduleservice.service.ScheduleService;
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -31,8 +32,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/schedules")
 @RequiredArgsConstructor
 public class ScheduleController {
-
+    
     private final ScheduleService scheduleService;
+    private final ScheduleMediateService scheduleMediateService;
 
     @PostMapping
     public ResponseEntity<ScheduleCreateResponse> createSchedule(
@@ -91,7 +93,7 @@ public class ScheduleController {
     public ResponseEntity<?> calculateTimeAvailability(
         @RequestBody CalculateAvailabilityRequest calculateAvailabilityRequest
     ) {
-        var response = scheduleService.calculateAvailability(calculateAvailabilityRequest);
+        var response = scheduleMediateService.calculateAvailability(calculateAvailabilityRequest);
         return ResponseEntity.ok(response);
     }
 

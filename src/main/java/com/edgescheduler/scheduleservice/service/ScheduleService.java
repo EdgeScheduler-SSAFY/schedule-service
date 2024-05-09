@@ -1,12 +1,10 @@
 package com.edgescheduler.scheduleservice.service;
 
-import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
-import com.edgescheduler.scheduleservice.dto.request.ResponseScheduleProposal;
 import com.edgescheduler.scheduleservice.dto.request.DecideAttendanceRequest;
+import com.edgescheduler.scheduleservice.dto.request.ResponseScheduleProposal;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
-import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse;
@@ -29,11 +27,9 @@ public interface ScheduleService {
 
     void deleteSchedule(Integer memberId, Long id, ScheduleDeleteRequest scheduleDeleteRequest);
 
-    CalculateAvailabilityResponse calculateAvailability(
-        CalculateAvailabilityRequest calculateAvailabilityRequest);
-
     void decideAttendance(Long scheduleId, Integer memberId,
         DecideAttendanceRequest decideAttendanceRequest);
 
-    void responseScheduleProposal(Long scheduleId, Integer memberId, Long proposalId, ResponseScheduleProposal responseScheduleProposal);
+    void responseScheduleProposal(Long scheduleId, Integer memberId, Long proposalId,
+        ResponseScheduleProposal responseScheduleProposal);
 }
