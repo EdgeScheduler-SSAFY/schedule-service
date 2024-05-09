@@ -86,13 +86,13 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
                 .allMatch(status -> status != IntervalStatus.UNAVAILABLE)) {
                 availableMembers.add(AvailableMember.builder()
                     .memberId(attendee.getMemberId())
-                    .memberName("default")              // TODO: memberName 추가
+                    .memberName(attendee.getMemberName())
                     .isRequired(attendee.getIsRequired())
                     .build());
             } else {
                 unavailableMembers.add(AvailableMember.builder()
                     .memberId(attendee.getMemberId())
-                    .memberName("default")              // TODO: memberName 추가
+                    .memberName(attendee.getMemberName())
                     .isRequired(attendee.getIsRequired())
                     .build());
             }
@@ -104,48 +104,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             .build();
     }
 
-    public IntervalStatus[] getAvailabilityWithinPeriod(int intervalCount,
-        List<IndividualSchedule> schedules,
-        LocalDateTime zonedStart, LocalDateTime zonedEnd) {
-        IntervalStatus[] availability = new IntervalStatus[intervalCount];
-        Arrays.fill(availability, IntervalStatus.AVAILABLE);
-        for (IndividualSchedule schedule : schedules) {
-            int startAffectedIndex = calculateAffectedIndex(
-                calculateIntervalIndexWithinPeriod(
-                    zonedStart, zonedEnd,
-                    schedule.getStartDatetime()),
-                schedule.getType(), true);
-            int endAffectedIndex = calculateAffectedIndex(
-                calculateIntervalIndexWithinPeriod(
-                    zonedStart, zonedEnd,
-                    schedule.getEndDatetime()),
-                schedule.getType(), false);
-            for (int i = startAffectedIndex; i <= endAffectedIndex; i++) {
-                if (schedule.getType() != ScheduleType.WORKING) {
-                    availability[i] = IntervalStatus.UNAVAILABLE;
-                } else if (availability[i] == IntervalStatus.AVAILABLE) {
-                    availability[i] = IntervalStatus.AVAILABLE_IN_WORKING_HOURS;
-                }
-            }
-        }
-        return availability;
-    }
-
-    private boolean conflictedWithPersonalSchedule(LocalDateTime start, LocalDateTime end,
-        IndividualSchedule schedule) {
-        return schedule.getType() != ScheduleType.WORKING
-            && start.isBefore(schedule.getEndDatetime())
-            && end.isAfter(schedule.getStartDatetime());
-    }
-
-    private boolean isWithinWorkingHour(LocalDateTime start, LocalDateTime end,
-        IndividualSchedule schedule) {
-        return schedule.getType() == ScheduleType.WORKING
-            && start.isAfter(schedule.getStartDatetime())
-            && end.isBefore(schedule.getEndDatetime());
-    }
-
-    // TODO: 일정 가용성 계산이 동일한 List를 반복적으로 순회하도록 되어있음. 최적화 필요.
     @Override
     public CalculateAvailabilityResponse calculateAvailability(
         CalculateAvailabilityRequest calculateAvailabilityRequest) {
@@ -598,6 +556,33 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             .availableMemberIds(availableMemberIds)
             .availableMemberInWorkingHourIds(availableMemberInWorkingHourIds)
             .build();
+    }
+
+    public IntervalStatus[] getAvailabilityWithinPeriod(int intervalCount,
+        List<IndividualSchedule> schedules,
+        LocalDateTime zonedStart, LocalDateTime zonedEnd) {
+        IntervalStatus[] availability = new IntervalStatus[intervalCount];
+        Arrays.fill(availability, IntervalStatus.AVAILABLE);
+        for (IndividualSchedule schedule : schedules) {
+            int startAffectedIndex = calculateAffectedIndex(
+                calculateIntervalIndexWithinPeriod(
+                    zonedStart, zonedEnd,
+                    schedule.getStartDatetime()),
+                schedule.getType(), true);
+            int endAffectedIndex = calculateAffectedIndex(
+                calculateIntervalIndexWithinPeriod(
+                    zonedStart, zonedEnd,
+                    schedule.getEndDatetime()),
+                schedule.getType(), false);
+            for (int i = startAffectedIndex; i <= endAffectedIndex; i++) {
+                if (schedule.getType() != ScheduleType.WORKING) {
+                    availability[i] = IntervalStatus.UNAVAILABLE;
+                } else if (availability[i] == IntervalStatus.AVAILABLE) {
+                    availability[i] = IntervalStatus.AVAILABLE_IN_WORKING_HOURS;
+                }
+            }
+        }
+        return availability;
     }
 
     private static boolean allRequiredParticipantsAvailable(int runningIntervalCount,
