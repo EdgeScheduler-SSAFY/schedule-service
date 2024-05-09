@@ -8,7 +8,6 @@ import com.edgescheduler.scheduleservice.domain.RecurrenceDayType;
 import com.edgescheduler.scheduleservice.domain.RecurrenceFreqType;
 import com.edgescheduler.scheduleservice.domain.Schedule;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
-import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
 import com.edgescheduler.scheduleservice.dto.request.ChangeScheduleTimeRequest;
 import com.edgescheduler.scheduleservice.dto.request.DecideAttendanceRequest;
 import com.edgescheduler.scheduleservice.dto.request.DeletedSchedule;
@@ -19,9 +18,6 @@ import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest.Sched
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest.RecurrenceDetails;
 import com.edgescheduler.scheduleservice.dto.request.UpdatedSchedule;
-import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse;
-import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse.IndividualSchedules;
-import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse.TokenizedTimeAvailability;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse.ScheduleDetailAttendee;
@@ -37,30 +33,30 @@ import com.edgescheduler.scheduleservice.repository.ProposalRepository;
 import com.edgescheduler.scheduleservice.repository.RecurrenceRepository;
 import com.edgescheduler.scheduleservice.repository.ScheduleRepository;
 import com.edgescheduler.scheduleservice.util.AlterTimeUtils;
-import com.edgescheduler.scheduleservice.util.TimeIntervalUtils;
-import com.edgescheduler.scheduleservice.vo.ScheduleVO;
 import jakarta.transaction.Transactional;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.PriorityQueue;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class SimpleScheduleService implements ScheduleService {
 
+    private static final Logger log = LoggerFactory.getLogger(SimpleScheduleService.class);
     private final ScheduleRepository scheduleRepository;
-    private final ScheduleMediateService scheduleMediateService;
     private final MemberTimezoneRepository memberTimezoneRepository;
     private final AttendeeRepository attendeeRepository;
     private final RecurrenceRepository recurrenceRepository;
@@ -972,86 +968,13 @@ public class SimpleScheduleService implements ScheduleService {
         }
     }
 
-    // TODO: 일정 가용성 계산이 동일한 List를 반복적으로 순회하도록 되어있음. 최적화 필요.
-    @Override
-    public CalculateAvailabilityResponse calculateAvailability(
-        CalculateAvailabilityRequest calculateAvailabilityRequest) {
-
-        // 주어진 기한 조건의 시작 일시와 끝 일시를 15분 단위(00분 / 15분 / 30분 / 45분)로 조정하고 그 사이의 토큰화된 구간의 개수를 계산한다.
-        LocalDateTime adjustedStart = TimeIntervalUtils.adjustToNextQuarterHour(
-            calculateAvailabilityRequest.getStartDatetime());
-        LocalDateTime adjustedEnd = TimeIntervalUtils.adjustToPreviousQuarterHour(
-            calculateAvailabilityRequest.getEndDatetime());
-        long intervalCount = TimeIntervalUtils.calculateIntervalCount(adjustedStart,
-            adjustedEnd);
-
-        // 조정된 시작 일시와 끝 일시를 UTC 표준시로 변환한다
-        Instant start = adjustedStart.toInstant(ZoneOffset.UTC);
-        Instant end = adjustedEnd.toInstant(ZoneOffset.UTC);
-
-        // 필참 멤버와 그외 멤버의 스케줄을 조회하여 Map 형태로 저장한다
-        Map<Integer, List<ScheduleVO>> requiredMemberScheduleMap = new HashMap<>();
-        Map<Integer, List<ScheduleVO>> unrequiredMemberScheduleMap = new HashMap<>();
-        calculateAvailabilityRequest.getMemberList().forEach(member -> {
-            if (member.getIsRequired()) {
-                requiredMemberScheduleMap.put(member.getMemberId(),
-                    findSchedulesForAttendeeWithinPeriod(member.getMemberId(), start, end));
-            } else {
-                unrequiredMemberScheduleMap.put(member.getMemberId(),
-                    findSchedulesForAttendeeWithinPeriod(member.getMemberId(), start, end));
-            }
-        });
-
-        // 응답에 필요한 개별 회원의 스케줄 목록을 생성한다
-        List<IndividualSchedules> schedules = new ArrayList<>();
-        addIndividualSchedules(schedules, requiredMemberScheduleMap);
-        addIndividualSchedules(schedules, unrequiredMemberScheduleMap);
-
-        // 토큰화된 시간대별로 필참 멤버와 그외 멤버의 가용성을 계산한다
-        List<TokenizedTimeAvailability> tokenizedTimeAvailabilities = new ArrayList<>();
-
-        for (long i = 0; i < intervalCount; i++) {
-
-            Instant intervalStart = start.plusSeconds(i * 900);
-            Instant intervalEnd = start.plusSeconds((i + 1) * 900);
-
-            int availableRequiredMemberCount = (int) requiredMemberScheduleMap.values().stream()
-                .filter(scheduleVOList -> scheduleMediateService.isAvailableWithOtherSchedule(
-                    intervalStart, intervalEnd, scheduleVOList)).count();
-            int availableMemberCount =
-                availableRequiredMemberCount + (int) unrequiredMemberScheduleMap.values()
-                    .stream()
-                    .filter(
-                        scheduleVOList -> scheduleMediateService.isAvailableWithOtherSchedule(
-                            intervalStart, intervalEnd, scheduleVOList)).count();
-            int availableRequiredMemberInWorkingHourCount = (int) requiredMemberScheduleMap.values()
-                .stream().filter(
-                    scheduleVOList -> scheduleMediateService.isOnWorkingHourAndAvailable(
-                        intervalStart, intervalEnd, scheduleVOList)).count();
-            int availableMemberInWorkingHourCount = availableRequiredMemberInWorkingHourCount
-                + (int) unrequiredMemberScheduleMap.values().stream().filter(
-                scheduleVOList -> scheduleMediateService.isOnWorkingHourAndAvailable(
-                    intervalStart,
-                    intervalEnd, scheduleVOList)).count();
-
-            tokenizedTimeAvailabilities.add(
-                TokenizedTimeAvailability.builder().availableMemberCount(availableMemberCount)
-                    .availableRequiredMemberCount(availableRequiredMemberCount)
-                    .availableMemberInWorkingHourCount(availableMemberInWorkingHourCount)
-                    .availableRequiredMemberInWorkingHourCount(
-                        availableRequiredMemberInWorkingHourCount).build());
-        }
-
-        return CalculateAvailabilityResponse.builder().schedules(schedules)
-            .tokenizedTimeAvailabilities(tokenizedTimeAvailabilities).build();
-    }
-
     @Override
     @Transactional
     public void decideAttendance(Long scheduleId, Integer memberId,
         DecideAttendanceRequest decideAttendanceRequest) {
 
-        Attendee attendee = attendeeRepository.findByScheduleIdAndMemberId(scheduleId, memberId)
+        Attendee attendee = attendeeRepository.findByScheduleIdAndMemberId(scheduleId,
+                memberId)
             .orElseThrow();
         String reason = decideAttendanceRequest.getReason();
         ZoneId zoneId = ZoneId.of(
@@ -1069,39 +992,6 @@ public class SimpleScheduleService implements ScheduleService {
             Proposal savedProposal = proposalRepository.save(proposal);
             attendee.updateProposal(savedProposal);
         }
-    }
-
-    /**
-     * 개별 회원의 스케줄을 추가한다.
-     *  TODO: 추후 각 멤버별 시간대 변환 처리 필요
-     */
-    private void addIndividualSchedules(List<IndividualSchedules> schedules,
-        Map<Integer, List<ScheduleVO>> memberScheduleMap) {
-        memberScheduleMap.keySet().forEach(memberId -> {
-            schedules.add(IndividualSchedules.builder().memberId(memberId).schedules(
-                    memberScheduleMap.get(memberId).stream().map(
-                        schedule -> CalculateAvailabilityResponse.ScheduleEntry.builder()
-                            .name(schedule.name()).startDatetime(
-                                LocalDateTime.ofInstant(schedule.startDatetime(), ZoneOffset.UTC))
-                            .endDatetime(
-                                LocalDateTime.ofInstant(schedule.endDatetime(), ZoneOffset.UTC))
-                            .type(schedule.type()).isPublic(schedule.isPublic()).build()).toList())
-                .build());
-        });
-    }
-
-    private List<ScheduleVO> findSchedulesForAttendeeWithinPeriod(Integer memberId, Instant
-        start,
-        Instant end) {
-        List<Schedule> schedules = scheduleRepository.findAcceptedSchedulesByAttendeeIdAndEndDatetimeBeforeAndStartDatetimeAfter(
-            memberId, start, end);
-
-        return schedules.stream().map(
-                schedule -> ScheduleVO.builder().id(schedule.getId()).name(schedule.getName())
-                    .type(schedule.getType()).startDatetime(schedule.getStartDatetime())
-                    .endDatetime(schedule.getEndDatetime()).isPublic(schedule.getIsPublic())
-                    .build())
-            .toList();
     }
 
     @Override
@@ -1138,7 +1028,8 @@ public class SimpleScheduleService implements ScheduleService {
     }
 
     // 삭제된 일정 체크하기
-    public boolean isDeletedSchedule(List<DeletedSchedule> deleteScheduleList, Schedule s,
+    public boolean isDeletedSchedule(List<DeletedSchedule> deleteScheduleList, Schedule
+        s,
         ZoneId zoneId, LocalDateTime startLocalDatetime) {
         for (DeletedSchedule d : deleteScheduleList) {
             if (AlterTimeUtils.instantToLocalDateTime(
@@ -1154,7 +1045,8 @@ public class SimpleScheduleService implements ScheduleService {
     }
 
     // 수정된 일정 체크하기
-    public boolean isUpdatedSchedule(List<UpdatedSchedule> updatedScheduleList, Schedule s,
+    public boolean isUpdatedSchedule(List<UpdatedSchedule> updatedScheduleList, Schedule
+        s,
         ZoneId zoneId, LocalDateTime startDatetime) {
         for (UpdatedSchedule u : updatedScheduleList) {
             if (AlterTimeUtils.instantToLocalDateTime(u.getUpdateDateInstant(),
@@ -1177,7 +1069,8 @@ public class SimpleScheduleService implements ScheduleService {
     }
 
     // 주 반복 요일 순서 정렬하기
-    public List<Integer> sortDayList(EnumSet<RecurrenceDayType> recurrenceDay, DayOfWeek startDay) {
+    public List<Integer> sortDayList(EnumSet<RecurrenceDayType> recurrenceDay, DayOfWeek
+        startDay) {
         List<Integer> dayList = new ArrayList<>();
         PriorityQueue<Integer> dayQueue = new PriorityQueue<>();
         for (RecurrenceDayType day : recurrenceDay) {
@@ -1189,5 +1082,23 @@ public class SimpleScheduleService implements ScheduleService {
             dayList.add(dayQueue.poll());
         }
         return dayList;
+    }
+
+    @Getter
+    @Builder
+    @ToString
+    public static class MeetingRecommendation {
+
+        private RecommendType recommendType;
+        private LocalDateTime start;
+        private LocalDateTime end;
+        private Integer startIndex;
+        private Integer endIndex;
+        private List<Integer> availableMemberIds;
+        private List<Integer> availableMemberInWorkingHourIds;
+
+        public static enum RecommendType {
+            FASTEST, MOST_PARTICIPANTS, MOST_PARTICIPANTS_IN_WORKING_HOUR
+        }
     }
 }

@@ -1,20 +1,14 @@
 package com.edgescheduler.scheduleservice.service;
 
-import com.edgescheduler.scheduleservice.vo.ScheduleVO;
-import java.time.Instant;
-import java.util.List;
+import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
+import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityWithProposalRequest;
+import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse;
 
 public interface ScheduleMediateService {
 
-    boolean isAvailableWithOtherSchedule(
-        Instant startTime,
-        Instant endTime,
-        List<ScheduleVO> schedules
-    );
+    Object calculateAvailableMembersWithProposedSchedule(
+        CalculateAvailabilityWithProposalRequest calculateAvailabilityWithProposalRequest);
 
-    boolean isOnWorkingHourAndAvailable(
-        Instant startTime,
-        Instant endTime,
-        List<ScheduleVO> schedules
-    );
+    CalculateAvailabilityResponse calculateAvailability(
+        CalculateAvailabilityRequest calculateAvailabilityRequest);
 }

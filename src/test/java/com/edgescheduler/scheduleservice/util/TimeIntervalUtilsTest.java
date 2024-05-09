@@ -61,9 +61,9 @@ class TimeIntervalUtilsTest {
 
     @DisplayName("15분 단위로 나눈 구간 개수 계산")
     @Test
-    void calculateIntervalCount() {
+    void calculateAdjustedIntervalCount() {
         var start = LocalDateTime.of(2024, 4, 25, 9, 57);
         var end = LocalDateTime.of(2024, 4, 25, 13, 11);
-        assertEquals(12, TimeIntervalUtils.calculateIntervalCount(start, end));
+        assertEquals(12, TimeIntervalUtils.calculateAdjustedIntervalCount(start, end));
     }
 }
