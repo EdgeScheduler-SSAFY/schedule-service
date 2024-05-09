@@ -804,6 +804,11 @@ public class SimpleScheduleService implements ScheduleService {
 
             scheduleResultList.add(individualSchedule);
         }
+        // 조회 기간 내 일정이 없는 경우
+        if (scheduleResultList.isEmpty()) {
+            throw ErrorCode.SCHEDULE_NOT_FOUND.build();
+        }
+
         return ScheduleListReadResponse.builder()
             .scheduleList(scheduleResultList)
             .build();
