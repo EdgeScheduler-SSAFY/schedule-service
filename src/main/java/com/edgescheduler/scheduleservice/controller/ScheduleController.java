@@ -49,7 +49,7 @@ public class ScheduleController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ScheduleDetailReadResponse> getSchedule(
-        @RequestHeader(name = "Authorization", defaultValue = "1") Integer memberId,
+        @RequestHeader(name = "Authorization") Integer memberId,
         @PathVariable Long id
     ) {
         var response = scheduleService.getSchedule(memberId, id);
@@ -59,7 +59,7 @@ public class ScheduleController {
     // TODO: 기간별 일정 조회
     @GetMapping("/period")
     public ResponseEntity<ScheduleListReadResponse> getSchedulesByPeriod(
-        @RequestHeader(name = "Authorization", defaultValue = "1") Integer memberId,
+        @RequestHeader(name = "Authorization") Integer memberId,
         @RequestParam(required = true) LocalDateTime startDatetime,
         @RequestParam(required = true) LocalDateTime endDatetime) {
         var scheduleListReadResponse = scheduleService.getScheduleByPeriod(memberId, startDatetime,
@@ -69,7 +69,7 @@ public class ScheduleController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ScheduleUpdateResponse> updateSchedule(
-        @RequestHeader(name = "Authorization", defaultValue = "1") Integer memberId,
+        @RequestHeader(name = "Authorization") Integer memberId,
         @PathVariable Long id,
         @RequestBody ScheduleUpdateRequest scheduleRequest
     ) {
