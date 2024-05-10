@@ -55,7 +55,7 @@ class ScheduleMediateServiceTest {
             IndividualSchedule.builder()
                 .type(ScheduleType.WORKING)
                 .startDatetime(LocalDateTime.of(2024, 5, 8, 11, 10))
-                .endDatetime(LocalDateTime.of(2024, 5, 8, 12, 50))
+                .endDatetime(LocalDateTime.of(2024, 5, 8, 13, 5))
                 .scheduleId(2L)
                 .name("test2")
                 .isPublic(true)
@@ -79,7 +79,7 @@ class ScheduleMediateServiceTest {
             AVAILABLE, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
             AVAILABLE_IN_WORKING_HOURS,
             AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
-            AVAILABLE,
+            AVAILABLE_IN_WORKING_HOURS,
             AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE,
             UNAVAILABLE
         };
@@ -116,7 +116,7 @@ class ScheduleMediateServiceTest {
             IndividualSchedule.builder()
                 .type(ScheduleType.WORKING)
                 .startDatetime(LocalDateTime.of(2024, 5, 8, 11, 10))
-                .endDatetime(LocalDateTime.of(2024, 5, 8, 12, 50))
+                .endDatetime(LocalDateTime.of(2024, 5, 8, 13, 5))
                 .scheduleId(2L)
                 .name("test2")
                 .isPublic(true)
@@ -146,7 +146,7 @@ class ScheduleMediateServiceTest {
             ScheduleEntry.builder()
                 .name("test2")
                 .startIndexInclusive(5)
-                .endIndexExclusive(11)
+                .endIndexExclusive(12)
                 .type(ScheduleType.WORKING)
                 .isPublic(true)
                 .build(),
@@ -164,7 +164,7 @@ class ScheduleMediateServiceTest {
             AVAILABLE, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
             AVAILABLE_IN_WORKING_HOURS,
             AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
-            AVAILABLE,
+            AVAILABLE_IN_WORKING_HOURS,
             AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE,
             UNAVAILABLE
         };
@@ -200,7 +200,8 @@ class ScheduleMediateServiceTest {
             new IntervalStatus[]{UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
                 AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
-                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE});
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE,
+                UNAVAILABLE});
 
         optionalMemberAvailabilityMap.put(3,
             new IntervalStatus[]{AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
@@ -245,17 +246,13 @@ class ScheduleMediateServiceTest {
                         .build()
                 ));
         MeetingRecommendation recommendation = scheduleMediateService.findFastestMeeting(
-            requiredMemberSaMap, optionalMemberSaMap,
-            LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
+            requiredMemberSaMap, optionalMemberSaMap, 3, 17);
 
         log.info("recommendation: {}", recommendation);
 
         assertEquals(RecommendType.FASTEST, recommendation.getRecommendType());
-        assertEquals(LocalDateTime.of(2024, 5, 8, 10, 45), recommendation.getStart());
-        assertEquals(LocalDateTime.of(2024, 5, 8, 11, 30), recommendation.getEnd());
-        assertEquals(3, recommendation.getStartIndex());
-        assertIterableEquals(List.of(1, 2, 3, 4, 6), recommendation.getAvailableMemberIds());
-        assertIterableEquals(List.of(1, 3, 4), recommendation.getAvailableMemberInWorkingHourIds());
+        assertEquals(3, recommendation.getStartIndexInclusive());
+        assertEquals(6, recommendation.getEndIndexExclusive());
     }
 
     @DisplayName("참여 가능 인원이 가장 많은 회의 시간 추천")
@@ -275,7 +272,8 @@ class ScheduleMediateServiceTest {
             new IntervalStatus[]{UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
                 AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
-                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE});
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE,
+                UNAVAILABLE});
 
         optionalMemberAvailabilityMap.put(3,
             new IntervalStatus[]{AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
@@ -320,16 +318,12 @@ class ScheduleMediateServiceTest {
                         .build()
                 ));
         MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsMeeting(
-            requiredMemberSaMap, optionalMemberSaMap,
-            LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
+            requiredMemberSaMap, optionalMemberSaMap, 3, 17);
 
         log.info("recommendation: {}", recommendation);
         assertEquals(RecommendType.MOST_PARTICIPANTS, recommendation.getRecommendType());
-        assertEquals(LocalDateTime.of(2024, 5, 8, 12, 15), recommendation.getStart());
-        assertEquals(LocalDateTime.of(2024, 5, 8, 13, 0), recommendation.getEnd());
-        assertEquals(9, recommendation.getStartIndex());
-        assertIterableEquals(List.of(1, 2, 3, 4, 5, 6), recommendation.getAvailableMemberIds());
-        assertIterableEquals(List.of(1, 4, 5), recommendation.getAvailableMemberInWorkingHourIds());
+        assertEquals(9, recommendation.getStartIndexInclusive());
+        assertEquals(12, recommendation.getEndIndexExclusive());
     }
 
     @DisplayName("근무 시간에 참여 가능한 인원이 가장 많은 회의 시간 추천")
@@ -349,7 +343,8 @@ class ScheduleMediateServiceTest {
             new IntervalStatus[]{UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
                 AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
-                AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE, UNAVAILABLE});
+                AVAILABLE_IN_WORKING_HOURS, AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE,
+                UNAVAILABLE});
 
         optionalMemberAvailabilityMap.put(3,
             new IntervalStatus[]{AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
@@ -394,16 +389,12 @@ class ScheduleMediateServiceTest {
                         .build()
                 ));
         MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsInWorkingHoursMeeting(
-            requiredMemberSaMap, optionalMemberSaMap,
-            LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
+            requiredMemberSaMap, optionalMemberSaMap, 3, 17);
 
         log.info("recommendation: {}", recommendation);
         assertEquals(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR,
             recommendation.getRecommendType());
-        assertEquals(LocalDateTime.of(2024, 5, 8, 10, 45), recommendation.getStart());
-        assertEquals(LocalDateTime.of(2024, 5, 8, 11, 30), recommendation.getEnd());
-        assertEquals(3, recommendation.getStartIndex());
-        assertIterableEquals(List.of(1, 2, 3, 4, 6), recommendation.getAvailableMemberIds());
-        assertIterableEquals(List.of(1, 3, 4), recommendation.getAvailableMemberInWorkingHourIds());
+        assertEquals(9, recommendation.getStartIndexInclusive());
+        assertEquals(12, recommendation.getEndIndexExclusive());
     }
 }

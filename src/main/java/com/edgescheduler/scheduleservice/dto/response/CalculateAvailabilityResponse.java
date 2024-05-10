@@ -12,7 +12,7 @@ import lombok.Setter;
 @Builder
 public class CalculateAvailabilityResponse {
 
-    private List<IndividualSchedulesAndAvailability> individualSchedulesAndAvailabilities;
+    private List<IndividualSchedulesAndAvailability> schedulesAndAvailabilities;
     private List<MeetingRecommendation> fastestMeetings;
     private List<MeetingRecommendation> mostParticipantsMeetings;
     private List<MeetingRecommendation> mostParticipantsInWorkingHourMeetings;

@@ -7,6 +7,8 @@ import com.edgescheduler.scheduleservice.dto.request.ResponseScheduleProposal;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
+import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse;
+import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityWithProposalResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse;
@@ -91,7 +93,7 @@ public class ScheduleController {
     }
 
     @PostMapping("/members/calculate-time-availability")
-    public ResponseEntity<?> calculateTimeAvailability(
+    public ResponseEntity<CalculateAvailabilityResponse> calculateTimeAvailability(
         @RequestHeader(name = "Authorization") Integer memberId,
         @RequestBody CalculateAvailabilityRequest calculateAvailabilityRequest
     ) {
@@ -101,7 +103,7 @@ public class ScheduleController {
     }
 
     @PostMapping("/calculate-time-availability-with-proposal")
-    public ResponseEntity<?> calculateTimeAvailabilityWithProposal(
+    public ResponseEntity<CalculateAvailabilityWithProposalResponse> calculateTimeAvailabilityWithProposal(
         @RequestHeader(name = "Authorization") Integer memberId,
         @RequestBody CalculateAvailabilityWithProposalRequest calculateAvailabilityRequest
     ) {

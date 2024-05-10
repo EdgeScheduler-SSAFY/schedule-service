@@ -33,7 +33,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -182,7 +181,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         MeetingRecommendation fastestMeeting = findFastestMeeting(
             requiredMemberSchedulesAndAvailabilityMap,
             optionalMemberSchedulesAndAvailabilityMap,
-            expandedStartDateTime,
             calculateAvailabilityRequest.getRunningTime() / 15,
             expandedIntervalCount);
         if (fastestMeeting != null) {
@@ -192,7 +190,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         MeetingRecommendation mostParticipantsMeeting = findMostParticipantsMeeting(
             requiredMemberSchedulesAndAvailabilityMap,
             optionalMemberSchedulesAndAvailabilityMap,
-            expandedStartDateTime,
             calculateAvailabilityRequest.getRunningTime() / 15,
             expandedIntervalCount);
         if (mostParticipantsMeeting != null) {
@@ -202,7 +199,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         MeetingRecommendation mostParticipantsInWorkingHourMeeting = findMostParticipantsInWorkingHoursMeeting(
             requiredMemberSchedulesAndAvailabilityMap,
             optionalMemberSchedulesAndAvailabilityMap,
-            expandedStartDateTime,
             calculateAvailabilityRequest.getRunningTime() / 15,
             expandedIntervalCount);
         if (mostParticipantsInWorkingHourMeeting != null) {
@@ -210,7 +206,7 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         }
 
         return CalculateAvailabilityResponse.builder()
-            .individualSchedulesAndAvailabilities(schedulesAndAvailabilities)
+            .schedulesAndAvailabilities(schedulesAndAvailabilities)
             .fastestMeetings(fastestMeetings)
             .mostParticipantsMeetings(mostParticipantsMeetings)
             .mostParticipantsInWorkingHourMeetings(mostParticipantsInWorkingHourMeetings)
@@ -223,7 +219,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
     public MeetingRecommendation findFastestMeeting(
         Map<Integer, IndividualSchedulesAndAvailability> requiredMemberAvailabilityMap,
         Map<Integer, IndividualSchedulesAndAvailability> optionalMemberAvailabilityMap,
-        LocalDateTime startDatetime,
         int runningIntervalCount, int intervalCount) {
 
         int fastestStartIndex = -1;
@@ -247,54 +242,47 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             return null;
         }
 
-        List<Integer> availableMemberIds = new ArrayList<>();
-        List<Integer> availableMemberInWorkingHourIds = new ArrayList<>();
-
-        int finalFastestStartIndex = fastestStartIndex;
-        requiredMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalFastestStartIndex,
-                    finalFastestStartIndex + runningIntervalCount)
-                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
-            if (available) {
-                availableMemberIds.add(id);
-            }
-        });
-        optionalMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalFastestStartIndex,
-                    finalFastestStartIndex + runningIntervalCount)
-                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
-            if (available) {
-                availableMemberIds.add(id);
-            }
-        });
-
-        requiredMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalFastestStartIndex,
-                    finalFastestStartIndex + runningIntervalCount)
-                .allMatch(
-                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
-            if (available) {
-                availableMemberInWorkingHourIds.add(id);
-            }
-        });
-        optionalMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalFastestStartIndex,
-                    finalFastestStartIndex + runningIntervalCount)
-                .allMatch(
-                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
-            if (available) {
-                availableMemberInWorkingHourIds.add(id);
-            }
-        });
+//        int finalFastestStartIndex = fastestStartIndex;
+//        requiredMemberAvailabilityMap.forEach((id, sa) -> {
+//            boolean available = IntStream.range(finalFastestStartIndex,
+//                    finalFastestStartIndex + runningIntervalCount)
+//                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
+//            if (available) {
+//                availableMemberIds.add(id);
+//            }
+//        });
+//        optionalMemberAvailabilityMap.forEach((id, sa) -> {
+//            boolean available = IntStream.range(finalFastestStartIndex,
+//                    finalFastestStartIndex + runningIntervalCount)
+//                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
+//            if (available) {
+//                availableMemberIds.add(id);
+//            }
+//        });
+//
+//        requiredMemberAvailabilityMap.forEach((id, sa) -> {
+//            boolean available = IntStream.range(finalFastestStartIndex,
+//                    finalFastestStartIndex + runningIntervalCount)
+//                .allMatch(
+//                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
+//            if (available) {
+//                availableMemberInWorkingHourIds.add(id);
+//            }
+//        });
+//        optionalMemberAvailabilityMap.forEach((id, sa) -> {
+//            boolean available = IntStream.range(finalFastestStartIndex,
+//                    finalFastestStartIndex + runningIntervalCount)
+//                .allMatch(
+//                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
+//            if (available) {
+//                availableMemberInWorkingHourIds.add(id);
+//            }
+//        });
 
         return MeetingRecommendation.builder()
             .recommendType(RecommendType.FASTEST)
-            .start(startDatetime.plusMinutes(fastestStartIndex * 15L))
-            .end(startDatetime.plusMinutes((fastestStartIndex + runningIntervalCount) * 15L))
-            .startIndex(fastestStartIndex)
-            .endIndex(fastestStartIndex + runningIntervalCount - 1)
-            .availableMemberIds(availableMemberIds)
-            .availableMemberInWorkingHourIds(availableMemberInWorkingHourIds)
+            .startIndexInclusive(fastestStartIndex)
+            .endIndexExclusive(fastestStartIndex + runningIntervalCount)
             .build();
     }
 
@@ -304,7 +292,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
     public MeetingRecommendation findMostParticipantsMeeting(
         Map<Integer, IndividualSchedulesAndAvailability> requiredMemberAvailabilityMap,
         Map<Integer, IndividualSchedulesAndAvailability> optionalMemberAvailabilityMap,
-        LocalDateTime startDatetime,
         int runningIntervalCount, int intervalCount) {
 
         int mostParticipantStartIndex = -1;
@@ -381,55 +368,10 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             return null;
         }
 
-        List<Integer> availableMemberIds = new ArrayList<>();
-        List<Integer> availableMemberInWorkingHourIds = new ArrayList<>();
-
-        int finalMostParticipantStartIndex = mostParticipantStartIndex;
-        requiredMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalMostParticipantStartIndex,
-                    finalMostParticipantStartIndex + runningIntervalCount)
-                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
-            if (available) {
-                availableMemberIds.add(id);
-            }
-        });
-        optionalMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalMostParticipantStartIndex,
-                    finalMostParticipantStartIndex + runningIntervalCount)
-                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
-            if (available) {
-                availableMemberIds.add(id);
-            }
-        });
-
-        requiredMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalMostParticipantStartIndex,
-                    finalMostParticipantStartIndex + runningIntervalCount)
-                .allMatch(
-                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
-            if (available) {
-                availableMemberInWorkingHourIds.add(id);
-            }
-        });
-        optionalMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalMostParticipantStartIndex,
-                    finalMostParticipantStartIndex + runningIntervalCount)
-                .allMatch(
-                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
-            if (available) {
-                availableMemberInWorkingHourIds.add(id);
-            }
-        });
-
         return MeetingRecommendation.builder()
             .recommendType(RecommendType.MOST_PARTICIPANTS)
-            .start(startDatetime.plusMinutes(mostParticipantStartIndex * 15L))
-            .end(
-                startDatetime.plusMinutes((mostParticipantStartIndex + runningIntervalCount) * 15L))
-            .startIndex(mostParticipantStartIndex)
-            .endIndex(mostParticipantStartIndex + runningIntervalCount - 1)
-            .availableMemberIds(availableMemberIds)
-            .availableMemberInWorkingHourIds(availableMemberInWorkingHourIds)
+            .startIndexInclusive(mostParticipantStartIndex)
+            .endIndexExclusive(mostParticipantStartIndex + runningIntervalCount)
             .build();
     }
 
@@ -439,7 +381,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
     public MeetingRecommendation findMostParticipantsInWorkingHoursMeeting(
         Map<Integer, IndividualSchedulesAndAvailability> requiredMemberAvailabilityMap,
         Map<Integer, IndividualSchedulesAndAvailability> optionalMemberAvailabilityMap,
-        LocalDateTime startDatetime,
         int runningIntervalCount, int intervalCount) {
 
         int mostParticipantInWorkingHourStartIndex = -1;
@@ -536,56 +477,10 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             return null;
         }
 
-        List<Integer> availableMemberIds = new ArrayList<>();
-        List<Integer> availableMemberInWorkingHourIds = new ArrayList<>();
-
-        int finalMostParticipantStartIndex = mostParticipantInWorkingHourStartIndex;
-        requiredMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalMostParticipantStartIndex,
-                    finalMostParticipantStartIndex + runningIntervalCount)
-                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
-            if (available) {
-                availableMemberIds.add(id);
-            }
-        });
-        optionalMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalMostParticipantStartIndex,
-                    finalMostParticipantStartIndex + runningIntervalCount)
-                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
-            if (available) {
-                availableMemberIds.add(id);
-            }
-        });
-
-        requiredMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalMostParticipantStartIndex,
-                    finalMostParticipantStartIndex + runningIntervalCount)
-                .allMatch(
-                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
-            if (available) {
-                availableMemberInWorkingHourIds.add(id);
-            }
-        });
-        optionalMemberAvailabilityMap.forEach((id, sa) -> {
-            boolean available = IntStream.range(finalMostParticipantStartIndex,
-                    finalMostParticipantStartIndex + runningIntervalCount)
-                .allMatch(
-                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
-            if (available) {
-                availableMemberInWorkingHourIds.add(id);
-            }
-        });
-
         return MeetingRecommendation.builder()
             .recommendType(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR)
-            .start(startDatetime.plusMinutes(mostParticipantInWorkingHourStartIndex * 15L))
-            .end(
-                startDatetime.plusMinutes(
-                    (mostParticipantInWorkingHourStartIndex + runningIntervalCount) * 15L))
-            .startIndex(mostParticipantInWorkingHourStartIndex)
-            .endIndex(mostParticipantInWorkingHourStartIndex + runningIntervalCount - 1)
-            .availableMemberIds(availableMemberIds)
-            .availableMemberInWorkingHourIds(availableMemberInWorkingHourIds)
+            .startIndexInclusive(mostParticipantInWorkingHourStartIndex)
+            .endIndexExclusive(mostParticipantInWorkingHourStartIndex + runningIntervalCount)
             .build();
     }
 
