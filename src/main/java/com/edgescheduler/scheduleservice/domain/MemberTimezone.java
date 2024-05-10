@@ -18,4 +18,8 @@ public class MemberTimezone {
     private Integer id;
 
     private String zoneId;
+
+    public void changeZoneId(String zoneId) {
+        this.zoneId = zoneId;
+    }
 }
