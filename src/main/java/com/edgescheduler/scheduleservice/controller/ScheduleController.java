@@ -7,12 +7,7 @@ import com.edgescheduler.scheduleservice.dto.request.ResponseScheduleProposal;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
-import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse;
-import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityWithProposalResponse;
-import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
-import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
-import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse;
-import com.edgescheduler.scheduleservice.dto.response.ScheduleUpdateResponse;
+import com.edgescheduler.scheduleservice.dto.response.*;
 import com.edgescheduler.scheduleservice.service.ScheduleMediateService;
 import com.edgescheduler.scheduleservice.service.ScheduleService;
 import java.net.URI;
@@ -58,6 +53,14 @@ public class ScheduleController {
         @PathVariable Long id
     ) {
         var response = scheduleService.getSchedule(memberId, id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/simple")
+    public ResponseEntity<SimpleScheduleInfoResponse> getSimpleSchedule(
+            @PathVariable Long id
+    ) {
+        var response = scheduleService.getSimpleSchedule(id);
         return ResponseEntity.ok(response);
     }
 

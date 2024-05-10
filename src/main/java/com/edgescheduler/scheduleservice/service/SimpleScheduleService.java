@@ -21,15 +21,11 @@ import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest.Sched
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest.RecurrenceDetails;
 import com.edgescheduler.scheduleservice.dto.request.UpdatedSchedule;
-import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
-import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
+import com.edgescheduler.scheduleservice.dto.response.*;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse.ScheduleDetailAttendee;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse.ScheduleProposal;
-import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse.IndividualSchedule;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse.IndividualSchedule.MeetingScheduleDetail;
-import com.edgescheduler.scheduleservice.dto.response.ScheduleUpdateResponse;
-import com.edgescheduler.scheduleservice.dto.response.UserInfoResponse;
 import com.edgescheduler.scheduleservice.exception.ErrorCode;
 import com.edgescheduler.scheduleservice.message.AttendeeProposalMessage;
 import com.edgescheduler.scheduleservice.message.AttendeeResponseMessage;
@@ -212,6 +208,22 @@ public class SimpleScheduleService implements ScheduleService {
             .endDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(), zoneId))
             .isPublic(schedule.getIsPublic()).attendeeList(attendeeList)
             .recurrenceDetails(recurrenceDetails).build();
+    }
+
+    @Override
+    public SimpleScheduleInfoResponse getSimpleSchedule(Long id) {
+        Schedule schedule = scheduleRepository.findById(id)
+                .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
+        return SimpleScheduleInfoResponse.builder()
+                .scheduleId(schedule.getId())
+                .name(schedule.getName())
+                .organizerId(schedule.getOrganizerId())
+                .organizerName(userServiceClient.getUserName(schedule.getOrganizerId()).getName())
+                .startDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getStartDatetime(),
+                        ZoneId.of("UTC")))
+                .endDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(),
+                        ZoneId.of("UTC")))
+                .build();
     }
 
     @Override
