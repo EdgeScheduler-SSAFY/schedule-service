@@ -3,16 +3,22 @@ package com.edgescheduler.scheduleservice.service;
 import static com.edgescheduler.scheduleservice.vo.IntervalStatus.AVAILABLE;
 import static com.edgescheduler.scheduleservice.vo.IntervalStatus.AVAILABLE_IN_WORKING_HOURS;
 import static com.edgescheduler.scheduleservice.vo.IntervalStatus.UNAVAILABLE;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-import com.edgescheduler.scheduleservice.service.SimpleScheduleService.MeetingRecommendation;
-import com.edgescheduler.scheduleservice.service.SimpleScheduleService.MeetingRecommendation.RecommendType;
+import com.edgescheduler.scheduleservice.domain.ScheduleType;
+import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse.IndividualSchedulesAndAvailability;
+import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse.ScheduleEntry;
+import com.edgescheduler.scheduleservice.dto.response.MeetingRecommendation;
+import com.edgescheduler.scheduleservice.dto.response.MeetingRecommendation.RecommendType;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse.IndividualSchedule;
 import com.edgescheduler.scheduleservice.vo.IntervalStatus;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +32,156 @@ class ScheduleMediateServiceTest {
 
     @InjectMocks
     private ScheduleMediateServiceImpl scheduleMediateService;
+
+    @DisplayName("특정 기간 내 가용 시간 배열 생성")
+    @Test
+    void getAvailabilityWithinPeriodTest() {
+
+        int intervalCount = 17;
+        LocalDateTime start = LocalDateTime.of(2024, 5, 8, 10, 0);
+        LocalDateTime end = LocalDateTime.of(2024, 5, 8, 14, 15);
+
+        List<IndividualSchedule> schedules = List.of(
+            IndividualSchedule.builder()
+                .type(ScheduleType.PERSONAL)
+                .startDatetime(LocalDateTime.of(2024, 5, 8, 9, 0))
+                .endDatetime(LocalDateTime.of(2024, 5, 8, 10, 35))
+                .scheduleId(1L)
+                .name("test1")
+                .isPublic(true)
+                .color(1)
+                .organizerId(10)
+                .build(),
+            IndividualSchedule.builder()
+                .type(ScheduleType.WORKING)
+                .startDatetime(LocalDateTime.of(2024, 5, 8, 11, 10))
+                .endDatetime(LocalDateTime.of(2024, 5, 8, 12, 50))
+                .scheduleId(2L)
+                .name("test2")
+                .isPublic(true)
+                .color(1)
+                .organizerId(10)
+                .build(),
+            IndividualSchedule.builder()
+                .type(ScheduleType.MEETING)
+                .startDatetime(LocalDateTime.of(2024, 5, 8, 13, 55))
+                .endDatetime(LocalDateTime.of(2024, 5, 8, 15, 0))
+                .scheduleId(3L)
+                .name("test3")
+                .isPublic(true)
+                .color(1)
+                .organizerId(10)
+                .build()
+        );
+
+        IntervalStatus[] expected = new IntervalStatus[]{
+            UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE,
+            AVAILABLE, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+            AVAILABLE_IN_WORKING_HOURS,
+            AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+            AVAILABLE,
+            AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE,
+            UNAVAILABLE
+        };
+
+        IntervalStatus[] availability = scheduleMediateService.getAvailabilityWithinPeriod(
+            intervalCount,
+            schedules,
+            start,
+            end
+        );
+
+        assertArrayEquals(expected, availability);
+    }
+
+    @DisplayName("특정 기간 내 일정 목록 & 가용 시간 배열 생성")
+    @Test
+    void getSchedulesAndAvailabilityWithinPeriodTest() {
+
+        int intervalCount = 17;
+        LocalDateTime start = LocalDateTime.of(2024, 5, 8, 10, 0);
+        LocalDateTime end = LocalDateTime.of(2024, 5, 8, 14, 15);
+
+        List<IndividualSchedule> schedules = List.of(
+            IndividualSchedule.builder()
+                .type(ScheduleType.PERSONAL)
+                .startDatetime(LocalDateTime.of(2024, 5, 8, 9, 0))
+                .endDatetime(LocalDateTime.of(2024, 5, 8, 10, 35))
+                .scheduleId(1L)
+                .name("test1")
+                .isPublic(true)
+                .color(1)
+                .organizerId(10)
+                .build(),
+            IndividualSchedule.builder()
+                .type(ScheduleType.WORKING)
+                .startDatetime(LocalDateTime.of(2024, 5, 8, 11, 10))
+                .endDatetime(LocalDateTime.of(2024, 5, 8, 12, 50))
+                .scheduleId(2L)
+                .name("test2")
+                .isPublic(true)
+                .color(1)
+                .organizerId(10)
+                .build(),
+            IndividualSchedule.builder()
+                .type(ScheduleType.MEETING)
+                .startDatetime(LocalDateTime.of(2024, 5, 8, 13, 55))
+                .endDatetime(LocalDateTime.of(2024, 5, 8, 15, 0))
+                .scheduleId(3L)
+                .name("test3")
+                .isPublic(true)
+                .color(1)
+                .organizerId(10)
+                .build()
+        );
+
+        List<ScheduleEntry> expectedSchedules = List.of(
+            ScheduleEntry.builder()
+                .name("test1")
+                .startIndexInclusive(0)
+                .endIndexExclusive(3)
+                .type(ScheduleType.PERSONAL)
+                .isPublic(true)
+                .build(),
+            ScheduleEntry.builder()
+                .name("test2")
+                .startIndexInclusive(5)
+                .endIndexExclusive(11)
+                .type(ScheduleType.WORKING)
+                .isPublic(true)
+                .build(),
+            ScheduleEntry.builder()
+                .name("test3")
+                .startIndexInclusive(15)
+                .endIndexExclusive(17)
+                .type(ScheduleType.MEETING)
+                .isPublic(true)
+                .build()
+        );
+
+        IntervalStatus[] expectedAvailability = new IntervalStatus[]{
+            UNAVAILABLE, UNAVAILABLE, UNAVAILABLE, AVAILABLE,
+            AVAILABLE, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+            AVAILABLE_IN_WORKING_HOURS,
+            AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS, AVAILABLE_IN_WORKING_HOURS,
+            AVAILABLE,
+            AVAILABLE, AVAILABLE, AVAILABLE, UNAVAILABLE,
+            UNAVAILABLE
+        };
+
+        var schedulesAndAvailability = scheduleMediateService.getSchedulesAndAvailabilityWithinPeriod(
+            1,
+            true,
+            intervalCount,
+            0,
+            schedules,
+            start,
+            end
+        );
+
+        assertIterableEquals(expectedSchedules, schedulesAndAvailability.getSchedules());
+        assertArrayEquals(expectedAvailability, schedulesAndAvailability.getAvailability());
+    }
 
     @DisplayName("가장 빠른 회의 시간 추천")
     @Test
@@ -68,10 +224,28 @@ class ScheduleMediateServiceTest {
             new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
-        List<Integer> availableMemberIds = List.of(1, 2, 3, 4, 5, 6);
-        availableMemberIds.stream().toList();
+        Map<Integer, IndividualSchedulesAndAvailability> requiredMemberSaMap =
+            requiredMemberAvailabilityMap.entrySet().stream().collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> IndividualSchedulesAndAvailability.builder()
+                        .memberId(e.getKey())
+                        .isRequired(true)
+                        .availability(e.getValue())
+                        .build()
+                ));
+        Map<Integer, IndividualSchedulesAndAvailability> optionalMemberSaMap =
+            optionalMemberAvailabilityMap.entrySet().stream().collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> IndividualSchedulesAndAvailability.builder()
+                        .memberId(e.getKey())
+                        .isRequired(false)
+                        .availability(e.getValue())
+                        .build()
+                ));
         MeetingRecommendation recommendation = scheduleMediateService.findFastestMeeting(
-            requiredMemberAvailabilityMap, optionalMemberAvailabilityMap,
+            requiredMemberSaMap, optionalMemberSaMap,
             LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
 
         log.info("recommendation: {}", recommendation);
@@ -125,9 +299,28 @@ class ScheduleMediateServiceTest {
             new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
-
+        Map<Integer, IndividualSchedulesAndAvailability> requiredMemberSaMap =
+            requiredMemberAvailabilityMap.entrySet().stream().collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> IndividualSchedulesAndAvailability.builder()
+                        .memberId(e.getKey())
+                        .isRequired(true)
+                        .availability(e.getValue())
+                        .build()
+                ));
+        Map<Integer, IndividualSchedulesAndAvailability> optionalMemberSaMap =
+            optionalMemberAvailabilityMap.entrySet().stream().collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> IndividualSchedulesAndAvailability.builder()
+                        .memberId(e.getKey())
+                        .isRequired(false)
+                        .availability(e.getValue())
+                        .build()
+                ));
         MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsMeeting(
-            requiredMemberAvailabilityMap, optionalMemberAvailabilityMap,
+            requiredMemberSaMap, optionalMemberSaMap,
             LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
 
         log.info("recommendation: {}", recommendation);
@@ -180,9 +373,28 @@ class ScheduleMediateServiceTest {
             new IntervalStatus[]{AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE,
                 AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE});
-
+        Map<Integer, IndividualSchedulesAndAvailability> requiredMemberSaMap =
+            requiredMemberAvailabilityMap.entrySet().stream().collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> IndividualSchedulesAndAvailability.builder()
+                        .memberId(e.getKey())
+                        .isRequired(true)
+                        .availability(e.getValue())
+                        .build()
+                ));
+        Map<Integer, IndividualSchedulesAndAvailability> optionalMemberSaMap =
+            optionalMemberAvailabilityMap.entrySet().stream().collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    e -> IndividualSchedulesAndAvailability.builder()
+                        .memberId(e.getKey())
+                        .isRequired(false)
+                        .availability(e.getValue())
+                        .build()
+                ));
         MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsInWorkingHoursMeeting(
-            requiredMemberAvailabilityMap, optionalMemberAvailabilityMap,
+            requiredMemberSaMap, optionalMemberSaMap,
             LocalDateTime.of(2024, 5, 8, 10, 0), 3, 17);
 
         log.info("recommendation: {}", recommendation);

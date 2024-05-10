@@ -66,4 +66,34 @@ class TimeIntervalUtilsTest {
         var end = LocalDateTime.of(2024, 4, 25, 13, 11);
         assertEquals(12, TimeIntervalUtils.calculateAdjustedIntervalCount(start, end));
     }
+
+    @DisplayName("해당일 자정으로 변경")
+    @Test
+    void getStartOfTheDayTest() {
+        var dateTime = LocalDateTime.of(2024, 4, 25, 9, 57);
+        assertEquals(
+            LocalDateTime.of(2024, 4, 25, 0, 0),
+            TimeIntervalUtils.getStartOfTheDay(dateTime)
+        );
+    }
+
+    @DisplayName("익일 04:00까지 확장")
+    @Test
+    void getExpandedEndOfTheDayTest() {
+        var dateTime = LocalDateTime.of(2024, 4, 26, 13, 11);
+        assertEquals(
+            LocalDateTime.of(2024, 4, 27, 4, 0),
+            TimeIntervalUtils.getExpandedEndOfTheDay(dateTime)
+        );
+    }
+
+    @DisplayName("자정일 경우, 해당일 04:00까지 확장")
+    @Test
+    void getExpandedEndOfTheDayMidnightTest() {
+        var dateTime = LocalDateTime.of(2024, 4, 26, 0, 0);
+        assertEquals(
+            LocalDateTime.of(2024, 4, 26, 4, 0),
+            TimeIntervalUtils.getExpandedEndOfTheDay(dateTime)
+        );
+    }
 }

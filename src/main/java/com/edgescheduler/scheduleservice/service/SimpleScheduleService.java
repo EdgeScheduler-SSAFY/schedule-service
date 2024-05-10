@@ -55,10 +55,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.PriorityQueue;
-import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -1253,23 +1250,5 @@ public class SimpleScheduleService implements ScheduleService {
             dayList.add(dayQueue.poll());
         }
         return dayList;
-    }
-
-    @Getter
-    @Builder
-    @ToString
-    public static class MeetingRecommendation {
-
-        private RecommendType recommendType;
-        private LocalDateTime start;
-        private LocalDateTime end;
-        private Integer startIndex;
-        private Integer endIndex;
-        private List<Integer> availableMemberIds;
-        private List<Integer> availableMemberInWorkingHourIds;
-
-        public enum RecommendType {
-            FASTEST, MOST_PARTICIPANTS, MOST_PARTICIPANTS_IN_WORKING_HOUR
-        }
     }
 }

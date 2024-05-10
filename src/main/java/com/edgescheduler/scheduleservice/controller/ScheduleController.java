@@ -1,6 +1,7 @@
 package com.edgescheduler.scheduleservice.controller;
 
 import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
+import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityWithProposalRequest;
 import com.edgescheduler.scheduleservice.dto.request.DecideAttendanceRequest;
 import com.edgescheduler.scheduleservice.dto.request.ResponseScheduleProposal;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
@@ -32,7 +33,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/schedules")
 @RequiredArgsConstructor
 public class ScheduleController {
-    
+
     private final ScheduleService scheduleService;
     private final ScheduleMediateService scheduleMediateService;
 
@@ -91,9 +92,22 @@ public class ScheduleController {
 
     @PostMapping("/members/calculate-time-availability")
     public ResponseEntity<?> calculateTimeAvailability(
+        @RequestHeader(name = "Authorization") Integer memberId,
         @RequestBody CalculateAvailabilityRequest calculateAvailabilityRequest
     ) {
+        calculateAvailabilityRequest.setOrganizerId(memberId);
         var response = scheduleMediateService.calculateAvailability(calculateAvailabilityRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/calculate-time-availability-with-proposal")
+    public ResponseEntity<?> calculateTimeAvailabilityWithProposal(
+        @RequestHeader(name = "Authorization") Integer memberId,
+        @RequestBody CalculateAvailabilityWithProposalRequest calculateAvailabilityRequest
+    ) {
+        calculateAvailabilityRequest.setRetrieverId(memberId);
+        var response = scheduleMediateService.calculateAvailableMembersWithProposedSchedule(
+            calculateAvailabilityRequest);
         return ResponseEntity.ok(response);
     }
 

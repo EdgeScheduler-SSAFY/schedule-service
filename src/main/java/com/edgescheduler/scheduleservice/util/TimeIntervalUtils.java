@@ -43,18 +43,33 @@ public class TimeIntervalUtils {
     }
 
     // 주어진 시간 범위를 15분 간격으로 나누어 반환
-    public static long calculateAdjustedIntervalCount(LocalDateTime start, LocalDateTime end) {
+    public static int calculateAdjustedIntervalCount(LocalDateTime start, LocalDateTime end) {
         LocalDateTime adjustedStart = adjustToNextQuarterHour(start);
         LocalDateTime adjustedEnd = adjustToPreviousQuarterHour(end);
-        return getMinuteDuration(adjustedStart, adjustedEnd) / 15;
+        return (int) (getMinuteDuration(adjustedStart, adjustedEnd) / 15);
     }
 
-    public static long calculateIntervalCount(LocalDateTime start, LocalDateTime end) {
+    public static LocalDateTime getStartOfTheDay(LocalDateTime dateTime) {
+        return dateTime.withHour(0).withMinute(0).withSecond(0).withNano(0);
+    }
+
+    public static LocalDateTime getExpandedEndOfTheDay(LocalDateTime dateTime) {
+        return isMidnight(dateTime)
+            ? dateTime.withHour(4).withMinute(0).withSecond(0).withNano(0)
+            : dateTime.plusDays(1).withHour(4).withMinute(0).withSecond(0).withNano(0);
+    }
+
+    private static boolean isMidnight(LocalDateTime dateTime) {
+        return dateTime.getHour() == 0 && dateTime.getMinute() == 0 && dateTime.getSecond() == 0
+            && dateTime.getNano() == 0;
+    }
+
+    public static int calculateIntervalCount(LocalDateTime start, LocalDateTime end) {
         return getMinuteDuration(start, end) / 15;
     }
 
-    public static long getMinuteDuration(LocalDateTime start, LocalDateTime end) {
-        return ChronoUnit.MINUTES.between(start, end);
+    public static int getMinuteDuration(LocalDateTime start, LocalDateTime end) {
+        return (int) ChronoUnit.MINUTES.between(start, end);
     }
 
     // 주어진 시간이 15분 단위(0,15,30,45)가 아니라면 이후 가장 가까운 15분 단위 시간으로 조정
