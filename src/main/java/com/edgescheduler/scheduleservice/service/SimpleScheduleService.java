@@ -841,6 +841,18 @@ public class SimpleScheduleService implements ScheduleService {
         if (!String.valueOf(savedSchedule.getType()).equals("MEETING")) {
             // 반복 일정 & 해당 이벤트만 수정
             if (isRecurrence && isOneOff) {
+                // 해당 날짜에 이미 수정된 이력이 있는 일정인 경우 삭제
+                List<Schedule> alreadyModifiedScheduleList = scheduleRepository.findModifiedScheduleByParentSchedule(
+                    savedSchedule);
+                if (alreadyModifiedScheduleList != null && !alreadyModifiedScheduleList.isEmpty()) {
+                    for (Schedule ms : alreadyModifiedScheduleList) {
+                        if (AlterTimeUtils.instantToLocalDateTime(ms.getStartDatetime(), zoneId)
+                            .toLocalDate().equals(startDatetime.toLocalDate())) {
+                            scheduleRepository.delete(ms);
+                            break;
+                        }
+                    }
+                }
                 Schedule modifiedSchedule = Schedule.builder().organizerId(organizerId)
                     .name(name)
                     .description(description).type(type).startDatetime(startInstant)
