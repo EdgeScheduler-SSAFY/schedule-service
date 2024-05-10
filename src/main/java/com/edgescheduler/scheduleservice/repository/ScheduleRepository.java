@@ -22,4 +22,8 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     @Query("SELECT s FROM Schedule s WHERE s.organizerId = :organizerId AND s.type != 'MEETING'")
     List<Schedule> findSchedulesExceptMeetingByOrganizerId(Integer organizerId);
+
+    // 반복 일정 중 하나의 이벤트만 수정된 경우, 해당 이벤트만 조회
+    @Query("SELECT s FROM Schedule s WHERE s.schedule = :schedule AND s.recurrence IS NULL")
+    List<Schedule> findModifiedScheduleByParentSchedule(Schedule schedule);
 }
