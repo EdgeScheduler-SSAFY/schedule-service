@@ -8,5 +8,6 @@ import lombok.Getter;
 @Builder
 public class DeletedSchedule {
     Long parentScheduleId;
-    Instant deleteDateInstant;
+    Instant deleteStartInstant;
+    Instant deleteEndInstant;
 }

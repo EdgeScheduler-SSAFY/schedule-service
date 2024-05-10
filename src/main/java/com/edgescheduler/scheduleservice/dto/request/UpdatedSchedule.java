@@ -8,5 +8,6 @@ import lombok.Getter;
 @Builder
 public class UpdatedSchedule {
     Long parentScheduleId;
-    Instant updateDateInstant;
+    Instant updateStartInstant;
+    Instant updateEndInstant;
 }

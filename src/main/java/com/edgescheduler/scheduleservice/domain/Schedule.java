@@ -74,7 +74,7 @@ public class Schedule {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_schedule_id")
-    private Schedule schedule;
+    private Schedule parentSchedule;
 
     public void updateNotRecurrencePrivateSchedule(Integer organizerId, String name,
         String description,

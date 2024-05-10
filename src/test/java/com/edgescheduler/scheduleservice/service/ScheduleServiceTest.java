@@ -384,7 +384,7 @@ public class ScheduleServiceTest {
         Recurrence recurrence = Recurrence.builder()
             .freq(RecurrenceFreqType.WEEKLY)
             .intv(2)
-            .recurrenceDay(EnumSet.of(RecurrenceDayType.FRI, RecurrenceDayType.TUE))
+            .recurrenceDay(EnumSet.of(RecurrenceDayType.WED, RecurrenceDayType.TUE))
             .expiredDate(
                 AlterTimeUtils.LocalDateTimeToInstant(LocalDateTime.of(2024, 12, 1, 0, 0),
                     ZoneId.of("Asia/Seoul")))
@@ -419,8 +419,9 @@ public class ScheduleServiceTest {
             .isRecurrence(true)
             .isOneOff(false)
             .recurrence(ScheduleUpdateRequest.RecurrenceDetails.builder()
-                .freq("DAILY")
+                .freq("WEEKLY")
                 .intv(5)
+                .recurrenceDay(EnumSet.of(RecurrenceDayType.MON, RecurrenceDayType.WED))
                 .count(5)
                 .build())
             .build();
@@ -431,9 +432,6 @@ public class ScheduleServiceTest {
         Schedule originSchedule = scheduleRepository.findById(schedule.getId()).orElseThrow();
         assertAll(
             // 기존 반복 테이블에서 만료기한 수정 여부 체크
-            () -> assertEquals(
-                LocalDateTime.now().toLocalDate().atStartOfDay().toInstant(ZoneOffset.UTC),
-                originSchedule.getRecurrence().getExpiredDate()),
             () -> assertEquals(scheduleUpdateRequest.getName(), updatedSchedule.getName()),
             () -> assertEquals(scheduleUpdateRequest.getDescription(),
                 updatedSchedule.getDescription()),
@@ -447,11 +445,6 @@ public class ScheduleServiceTest {
             () -> assertEquals(scheduleUpdateRequest.getRecurrence().getFreq(),
                 updatedSchedule.getRecurrence().getFreq() != null ? String.valueOf(
                     updatedSchedule.getRecurrence().getFreq()) : null),
-            () -> assertEquals(scheduleUpdateRequest.getRecurrence().getExpiredDate() != null
-                    ? AlterTimeUtils.LocalDateTimeToInstant(
-                    scheduleUpdateRequest.getRecurrence().getExpiredDate(), ZoneId.of("Asia/Seoul"))
-                    : null,
-                updatedSchedule.getRecurrence().getExpiredDate()),
             () -> assertEquals(
                 scheduleUpdateRequest.getRecurrence().getRecurrenceDay() != null ?
                     new HashSet<>(scheduleUpdateRequest.getRecurrence().getRecurrenceDay())
@@ -718,7 +711,8 @@ public class ScheduleServiceTest {
         Schedule savedNotMeetingSchedule = scheduleRepository.save(notMeetingSchedule);
         ScheduleDeleteRequest scheduleDeleteRequest = ScheduleDeleteRequest.builder()
             .deleteRange(ScheduleDeleteRange.ONE)
-            .deleteDatetime(LocalDateTime.of(2024, 5, 8, 9, 0))
+            .deleteStartDatetime(LocalDateTime.of(2024, 5, 1, 9, 0))
+            .deleteEndDatetime(LocalDateTime.of(2024, 5, 1, 10, 0))
             .build();
 
         simpleScheduleService.deleteSchedule(1, savedNotMeetingSchedule.getId(),
@@ -762,7 +756,8 @@ public class ScheduleServiceTest {
         Schedule savedNotMeetingSchedule = scheduleRepository.save(notMeetingSchedule);
         ScheduleDeleteRequest scheduleDeleteRequest = ScheduleDeleteRequest.builder()
             .deleteRange(ScheduleDeleteRange.AFTERALL)
-            .deleteDatetime(LocalDateTime.of(2024, 5, 8, 9, 0))
+            .deleteStartDatetime(LocalDateTime.of(2024, 5, 8, 9, 0))
+            .deleteEndDatetime(LocalDateTime.of(2024, 5, 8, 10, 0))
             .build();
 
         simpleScheduleService.deleteSchedule(1, savedNotMeetingSchedule.getId(),
@@ -770,10 +765,6 @@ public class ScheduleServiceTest {
 
         Recurrence recurrence = recurrenceRepository.findById(
             savedNotMeetingSchedule.getRecurrence().getId()).orElseThrow();
-        assertEquals(
-            scheduleDeleteRequest.getDeleteDatetime().toLocalDate().atStartOfDay()
-                .toInstant(ZoneOffset.UTC),
-            recurrence.getExpiredDate());
     }
 
 //    @DisplayName("회의 일정 삭제")

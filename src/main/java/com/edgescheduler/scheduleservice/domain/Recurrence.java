@@ -9,8 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.EnumSet;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,7 +40,7 @@ public class Recurrence {
     @Convert(converter = RecurrenceDaySetConverter.class)
     private EnumSet<RecurrenceDayType> recurrenceDay;
 
-    public void terminateRecurrenceByDate(LocalDateTime datetime) {
-        this.expiredDate = datetime.toLocalDate().atStartOfDay().toInstant(ZoneOffset.UTC);
+    public void terminateRecurrenceByDate(Instant expiredInstant) {
+        this.expiredDate = expiredInstant;
     }
 }
