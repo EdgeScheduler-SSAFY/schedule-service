@@ -1,43 +1,42 @@
 package com.edgescheduler.scheduleservice.dto.response;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
+import com.edgescheduler.scheduleservice.vo.IntervalStatus;
+import java.util.List;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Builder
 public class CalculateAvailabilityResponse {
 
-    private List<IndividualSchedules> schedules;
-    private List<TokenizedTimeAvailability> tokenizedTimeAvailabilities;
+    private List<IndividualSchedulesAndAvailability> individualSchedulesAndAvailabilities;
+    private List<MeetingRecommendation> fastestMeetings;
+    private List<MeetingRecommendation> mostParticipantsMeetings;
+    private List<MeetingRecommendation> mostParticipantsInWorkingHourMeetings;
 
     @Getter
     @Builder
-    public static class IndividualSchedules {
+    public static class IndividualSchedulesAndAvailability {
 
         private Integer memberId;
+        private Boolean isRequired;
         private List<ScheduleEntry> schedules;
+        @Setter
+        private IntervalStatus[] availability;
     }
 
     @Getter
     @Builder
+    @EqualsAndHashCode
     public static class ScheduleEntry {
+
         private String name;
-        private LocalDateTime startDatetime;
-        private LocalDateTime endDatetime;
+        private Integer startIndexInclusive;
+        private Integer endIndexExclusive;
         private ScheduleType type;
         private Boolean isPublic;
-    }
-
-    @Getter
-    @Builder
-    public static class TokenizedTimeAvailability {
-        private Integer availableMemberCount;
-        private Integer availableRequiredMemberCount;
-        private Integer availableMemberInWorkingHourCount;
-        private Integer availableRequiredMemberInWorkingHourCount;
     }
 }
