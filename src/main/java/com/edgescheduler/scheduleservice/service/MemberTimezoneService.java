@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class MemberTimezoneService {
 
-
     @KafkaListener(topics = "${kafka.topic.timezone-configured}")
     public void listen(ChangeTimeZoneMessage message) {
         log.info("Received message: {} | {}", message.getMemberId(), message.getZoneId());
