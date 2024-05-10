@@ -11,6 +11,11 @@ spring:
       - ${KAFKA_BOOTSTRAP_SERVER_1}
       - ${KAFKA_BOOTSTRAP_SERVER_2}
       - ${KAFKA_BOOTSTRAP_SERVER_3}
+    consumer:
+      group-id: ${KAFKA_GROUP_ID}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

@@ -1,8 +1,17 @@
 package com.edgescheduler.scheduleservice.service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import com.edgescheduler.scheduleservice.message.ChangeTimeZoneMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Service;
 
-public interface MemberTimezoneService {
+@Slf4j
+@Service
+public class MemberTimezoneService {
+
+
+    @KafkaListener(topics = "${kafka.topic.timezone-configured}")
+    public void listen(ChangeTimeZoneMessage message) {
+        log.info("Received message: {} | {}", message.getMemberId(), message.getZoneId());
+    }
 }
