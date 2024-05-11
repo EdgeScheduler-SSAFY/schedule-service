@@ -41,7 +41,6 @@ import com.edgescheduler.scheduleservice.repository.ProposalRepository;
 import com.edgescheduler.scheduleservice.repository.RecurrenceRepository;
 import com.edgescheduler.scheduleservice.repository.ScheduleRepository;
 import com.edgescheduler.scheduleservice.util.AlterTimeUtils;
-import jakarta.transaction.Transactional;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -54,6 +53,7 @@ import java.util.PriorityQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -144,6 +144,7 @@ public class SimpleScheduleService implements ScheduleService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ScheduleDetailReadResponse getSchedule(Integer memberId, Long id) {
         // 해당 일정 조회
         Schedule schedule = scheduleRepository.findById(id)
@@ -216,6 +217,7 @@ public class SimpleScheduleService implements ScheduleService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SimpleScheduleInfoResponse getSimpleSchedule(Long scheduleId, Integer receiverId) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
@@ -238,6 +240,7 @@ public class SimpleScheduleService implements ScheduleService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ScheduleListReadResponse getScheduleByPeriod(Integer memberId, LocalDateTime start,
         LocalDateTime end) {
         ZoneId zoneId = ZoneId.of(
