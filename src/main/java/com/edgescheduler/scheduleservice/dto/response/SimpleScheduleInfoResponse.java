@@ -1,5 +1,6 @@
 package com.edgescheduler.scheduleservice.dto.response;
 
+import com.edgescheduler.scheduleservice.domain.AttendeeStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,4 +15,5 @@ public class SimpleScheduleInfoResponse {
     private String organizerName;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
+    private AttendeeStatus receiverStatus;
 }

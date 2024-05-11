@@ -211,12 +211,18 @@ public class SimpleScheduleService implements ScheduleService {
     }
 
     @Override
-    public SimpleScheduleInfoResponse getSimpleSchedule(Long id) {
-        Schedule schedule = scheduleRepository.findById(id)
+    public SimpleScheduleInfoResponse getSimpleSchedule(Long scheduleId, Integer receiverId) {
+        Schedule schedule = scheduleRepository.findById(scheduleId)
                 .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
+        AttendeeStatus status = schedule.getAttendees().stream()
+                .filter(attendee -> attendee.getMemberId().equals(receiverId))
+                .findFirst()
+                .map(Attendee::getStatus)
+                .orElseThrow(() -> ErrorCode.ATTENDEE_NOT_FOUND.build());
         return SimpleScheduleInfoResponse.builder()
                 .scheduleId(schedule.getId())
                 .name(schedule.getName())
+                .receiverStatus(status)
                 .organizerId(schedule.getOrganizerId())
                 .organizerName(userServiceClient.getUserName(schedule.getOrganizerId()).getName())
                 .startDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getStartDatetime(),

@@ -15,7 +15,7 @@ public interface ScheduleService {
 
     ScheduleDetailReadResponse getSchedule(Integer memberId, Long id);
 
-    SimpleScheduleInfoResponse getSimpleSchedule(Long id);
+    SimpleScheduleInfoResponse getSimpleSchedule(Long scheduleId, Integer receiverId);
 
     ScheduleListReadResponse getScheduleByPeriod(Integer memberId, LocalDateTime start,
         LocalDateTime end);

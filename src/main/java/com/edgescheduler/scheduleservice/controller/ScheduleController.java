@@ -56,11 +56,12 @@ public class ScheduleController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}/simple")
+    @GetMapping("/{scheduleId}/simple")
     public ResponseEntity<SimpleScheduleInfoResponse> getSimpleSchedule(
-            @PathVariable Long id
+            @PathVariable Long scheduleId,
+            @RequestParam(required = true) Integer receiverId
     ) {
-        var response = scheduleService.getSimpleSchedule(id);
+        var response = scheduleService.getSimpleSchedule(scheduleId, receiverId);
         return ResponseEntity.ok(response);
     }
 
