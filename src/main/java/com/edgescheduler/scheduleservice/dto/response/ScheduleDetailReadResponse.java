@@ -22,6 +22,7 @@ public class ScheduleDetailReadResponse {
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
     private List<ScheduleDetailAttendee> attendeeList;
+    private String myStatus;
     private Boolean isPublic;
     private RecurrenceDetails recurrenceDetails;
 

@@ -9,9 +9,10 @@ import lombok.Getter;
 @Builder
 public class ScheduleDeleteRequest {
     private ScheduleDeleteRange deleteRange;
-    private LocalDateTime deleteDatetime;
+    private LocalDateTime deleteStartDatetime;
+    private LocalDateTime deleteEndDatetime;
 
-    public enum ScheduleDeleteRange{
+    public enum ScheduleDeleteRange {
         ALL, ONE, AFTERALL
     }
 }
