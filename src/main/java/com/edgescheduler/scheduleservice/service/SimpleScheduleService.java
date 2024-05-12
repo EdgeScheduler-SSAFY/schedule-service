@@ -21,11 +21,16 @@ import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest.Sched
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest.RecurrenceDetails;
 import com.edgescheduler.scheduleservice.dto.request.UpdatedSchedule;
-import com.edgescheduler.scheduleservice.dto.response.*;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse.ScheduleDetailAttendee;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse.ScheduleProposal;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse.IndividualSchedule;
 import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse.IndividualSchedule.MeetingScheduleDetail;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleUpdateResponse;
+import com.edgescheduler.scheduleservice.dto.response.SimpleScheduleInfoResponse;
+import com.edgescheduler.scheduleservice.dto.response.UserInfoResponse;
 import com.edgescheduler.scheduleservice.exception.ErrorCode;
 import com.edgescheduler.scheduleservice.message.AttendeeProposalMessage;
 import com.edgescheduler.scheduleservice.message.AttendeeResponseMessage;
@@ -117,10 +122,19 @@ public class SimpleScheduleService implements ScheduleService {
         if (type.equals(ScheduleType.MEETING)) {
             List<ScheduleAttendee> attendeeList = scheduleCreateRequest.getAttendeeList();
             if (!attendeeList.isEmpty()) {
-                attendeeList.stream().map(
-                    attendee -> Attendee.builder().isRequired(attendee.getIsRequired())
-                        .memberId(attendee.getMemberId()).status(AttendeeStatus.PENDING)
-                        .schedule(saveSchedule).build()).forEach(attendeeRepository::save);
+                for (ScheduleAttendee attendee : attendeeList) {
+                    AttendeeStatus status = AttendeeStatus.PENDING;
+                    if (attendee.getMemberId().equals(organizerId)) {
+                        status = AttendeeStatus.ACCEPTED;
+                    }
+                    Attendee saveAttendee = Attendee.builder()
+                        .schedule(saveSchedule)
+                        .memberId(attendee.getMemberId())
+                        .status(status)
+                        .isRequired(attendee.getIsRequired())
+                        .build();
+                    attendeeRepository.save(saveAttendee);
+                }
             }
             List<Integer> attendeeIds = new ArrayList<>();
             for (ScheduleAttendee attendee : attendeeList) {
@@ -220,23 +234,23 @@ public class SimpleScheduleService implements ScheduleService {
     @Transactional(readOnly = true)
     public SimpleScheduleInfoResponse getSimpleSchedule(Long scheduleId, Integer receiverId) {
         Schedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
+            .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
         AttendeeStatus status = schedule.getAttendees().stream()
-                .filter(attendee -> attendee.getMemberId().equals(receiverId))
-                .findFirst()
-                .map(Attendee::getStatus)
-                .orElseThrow(() -> ErrorCode.ATTENDEE_NOT_FOUND.build());
+            .filter(attendee -> attendee.getMemberId().equals(receiverId))
+            .findFirst()
+            .map(Attendee::getStatus)
+            .orElseThrow(ErrorCode.ATTENDEE_NOT_FOUND::build);
         return SimpleScheduleInfoResponse.builder()
-                .scheduleId(schedule.getId())
-                .name(schedule.getName())
-                .receiverStatus(status)
-                .organizerId(schedule.getOrganizerId())
-                .organizerName(userServiceClient.getUserName(schedule.getOrganizerId()).getName())
-                .startDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getStartDatetime(),
-                        ZoneId.of("UTC")))
-                .endDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(),
-                        ZoneId.of("UTC")))
-                .build();
+            .scheduleId(schedule.getId())
+            .name(schedule.getName())
+            .receiverStatus(status)
+            .organizerId(schedule.getOrganizerId())
+            .organizerName(userServiceClient.getUserName(schedule.getOrganizerId()).getName())
+            .startDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getStartDatetime(),
+                ZoneId.of("UTC")))
+            .endDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(),
+                ZoneId.of("UTC")))
+            .build();
     }
 
     @Override
