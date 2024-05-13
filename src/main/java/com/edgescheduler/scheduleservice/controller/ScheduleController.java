@@ -7,9 +7,16 @@ import com.edgescheduler.scheduleservice.dto.request.ResponseScheduleProposal;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleCreateRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleDeleteRequest;
 import com.edgescheduler.scheduleservice.dto.request.ScheduleUpdateRequest;
-import com.edgescheduler.scheduleservice.dto.response.*;
+import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityResponse;
+import com.edgescheduler.scheduleservice.dto.response.CalculateAvailabilityWithProposalResponse;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleCreateResponse;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleDetailReadResponse;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse;
+import com.edgescheduler.scheduleservice.dto.response.ScheduleUpdateResponse;
+import com.edgescheduler.scheduleservice.dto.response.SimpleScheduleInfoResponse;
 import com.edgescheduler.scheduleservice.service.ScheduleMediateService;
 import com.edgescheduler.scheduleservice.service.ScheduleService;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -58,8 +65,8 @@ public class ScheduleController {
 
     @GetMapping("/{scheduleId}/simple")
     public ResponseEntity<SimpleScheduleInfoResponse> getSimpleSchedule(
-            @PathVariable Long scheduleId,
-            @RequestParam(required = true) Integer receiverId
+        @PathVariable Long scheduleId,
+        @RequestParam(required = true) Integer receiverId
     ) {
         var response = scheduleService.getSimpleSchedule(scheduleId, receiverId);
         return ResponseEntity.ok(response);
@@ -99,7 +106,7 @@ public class ScheduleController {
     @PostMapping("/members/calculate-time-availability")
     public ResponseEntity<CalculateAvailabilityResponse> calculateTimeAvailability(
         @RequestHeader(name = "Authorization") Integer memberId,
-        @RequestBody CalculateAvailabilityRequest calculateAvailabilityRequest
+        @RequestBody @Valid CalculateAvailabilityRequest calculateAvailabilityRequest
     ) {
         calculateAvailabilityRequest.setOrganizerId(memberId);
         var response = scheduleMediateService.calculateAvailability(calculateAvailabilityRequest);
@@ -109,7 +116,7 @@ public class ScheduleController {
     @PostMapping("/calculate-time-availability-with-proposal")
     public ResponseEntity<CalculateAvailabilityWithProposalResponse> calculateTimeAvailabilityWithProposal(
         @RequestHeader(name = "Authorization") Integer memberId,
-        @RequestBody CalculateAvailabilityWithProposalRequest calculateAvailabilityRequest
+        @RequestBody @Valid CalculateAvailabilityWithProposalRequest calculateAvailabilityRequest
     ) {
         calculateAvailabilityRequest.setRetrieverId(memberId);
         var response = scheduleMediateService.calculateAvailableMembersWithProposedSchedule(

@@ -24,6 +24,7 @@ public class TestController {
             .organizerName("Organizer")
             .startTime(LocalDateTime.now())
             .endTime(LocalDateTime.now().plusHours(1))
+            .runningTime(60)
             .attendeeIds(IntStream.range(1, 6).boxed().toList())
             .build();
         kafkaProducer.send("meeting-created", meetingCreateMessage);

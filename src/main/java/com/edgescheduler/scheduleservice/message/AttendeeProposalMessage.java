@@ -1,10 +1,9 @@
 package com.edgescheduler.scheduleservice.message;
 
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDateTime;
 
 @Getter
 @SuperBuilder
@@ -18,5 +17,6 @@ public class AttendeeProposalMessage extends KafkaEventMessage {
     private String attendeeName;
     private LocalDateTime proposedStartTime;
     private LocalDateTime proposedEndTime;
+    private Integer runningTime;
     private String reason;
 }

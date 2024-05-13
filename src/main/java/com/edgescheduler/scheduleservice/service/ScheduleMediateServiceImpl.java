@@ -53,7 +53,7 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         var scheduleId = calculateAvailabilityWithProposalRequest.getScheduleId();
         var startTime = calculateAvailabilityWithProposalRequest.getStartDatetime();
         var endTime = calculateAvailabilityWithProposalRequest.getEndDatetime();
-
+         
         ScheduleDetailReadResponse schedule = scheduleService.getSchedule(retrieverId, scheduleId);
 
         // 기존 일정과 총 회의 시간이 일치하지 않으면 에러

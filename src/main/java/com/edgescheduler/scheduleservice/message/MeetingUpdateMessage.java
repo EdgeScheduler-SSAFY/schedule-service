@@ -32,6 +32,8 @@ public class MeetingUpdateMessage extends KafkaEventMessage {
     @Setter
     private LocalDateTime updatedEndTime;       // 변경되지 않은 경우 원래 시간
 
+    private Integer runningTime;
+
     private List<Integer> maintainedAttendeeIds;
 
     private List<Integer> addedAttendeeIds;

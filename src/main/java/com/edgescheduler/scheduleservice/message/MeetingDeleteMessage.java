@@ -1,11 +1,10 @@
 package com.edgescheduler.scheduleservice.message;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @SuperBuilder
@@ -18,5 +17,6 @@ public class MeetingDeleteMessage extends KafkaEventMessage {
     private String organizerName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Integer runningTime;
     private List<Integer> attendeeIds;
 }
