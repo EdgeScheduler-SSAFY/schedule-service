@@ -292,8 +292,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         Map<Integer, IndividualSchedulesAndAvailability> optionalMemberAvailabilityMap,
         int runningIntervalCount, int intervalCount) {
 
-        int mostParticipantStartIndex = -1;
-        int mostParticipantCount = 0;
+        int mostParticipantsStartIndex = -1;
+        int mostParticipantsCount = 0;
         int[] requiredCountingWindow = new int[requiredMemberAvailabilityMap.size()];
         int[] optionalCountingWindow = new int[optionalMemberAvailabilityMap.size()];
 
@@ -324,8 +324,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             });
 
             if (allRequiredParticipantsAvailable(runningIntervalCount, requiredCountingWindow)) {
-                mostParticipantStartIndex = 0;
-                mostParticipantCount = (int) (requiredMemberAvailabilityMap.size()
+                mostParticipantsStartIndex = 0;
+                mostParticipantsCount = (int) (requiredMemberAvailabilityMap.size()
                     + Arrays.stream(optionalCountingWindow)
                     .filter(count -> count == runningIntervalCount).count());
             }
@@ -354,20 +354,20 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
                 .filter(count -> count == runningIntervalCount).count();
 
             if (allRequiredParticipantsAvailable(runningIntervalCount, requiredCountingWindow)
-                && mostParticipantCount < requiredMemberAvailabilityMap.size() + optionalCount) {
-                mostParticipantStartIndex = i - runningIntervalCount + 1;
-                mostParticipantCount = requiredMemberAvailabilityMap.size() + optionalCount;
+                && mostParticipantsCount < requiredMemberAvailabilityMap.size() + optionalCount) {
+                mostParticipantsStartIndex = i - runningIntervalCount + 1;
+                mostParticipantsCount = requiredMemberAvailabilityMap.size() + optionalCount;
             }
         }
 
-        if (mostParticipantStartIndex < 0) {
+        if (mostParticipantsStartIndex < 0) {
             return null;
         }
 
         return MeetingRecommendation.builder()
             .recommendType(RecommendType.MOST_PARTICIPANTS)
-            .startIndexInclusive(mostParticipantStartIndex)
-            .endIndexExclusive(mostParticipantStartIndex + runningIntervalCount)
+            .startIndexInclusive(mostParticipantsStartIndex)
+            .endIndexExclusive(mostParticipantsStartIndex + runningIntervalCount)
             .build();
     }
 
@@ -379,8 +379,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         Map<Integer, IndividualSchedulesAndAvailability> optionalMemberAvailabilityMap,
         int runningIntervalCount, int intervalCount) {
 
-        int mostParticipantInWorkingHourStartIndex = -1;
-        int mostParticipantInWorkingHourCount = 0;
+        int mostParticipantsInWorkingHourStartIndex = -1;
+        int mostParticipantsInWorkingHourCount = -1;
         // 필참 인원은 모두 참여 가능해야 하므로 참여 가능 인원 별도로 카운트
         int[] requiredAvailableCountingWindow = new int[requiredMemberAvailabilityMap.size()];
         int[] requiredCountingWindow = new int[requiredMemberAvailabilityMap.size()];
@@ -417,8 +417,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
 
             if (allRequiredParticipantsAvailable(runningIntervalCount,
                 requiredAvailableCountingWindow)) {
-                mostParticipantInWorkingHourStartIndex = 0;
-                mostParticipantInWorkingHourCount =
+                mostParticipantsInWorkingHourStartIndex = 0;
+                mostParticipantsInWorkingHourCount =
                     (int) (Arrays.stream(requiredCountingWindow)
                         .filter(count -> count == runningIntervalCount).count()
                         + Arrays.stream(optionalCountingWindow)
@@ -460,22 +460,22 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
 
             if (allRequiredParticipantsAvailable(runningIntervalCount,
                 requiredAvailableCountingWindow)
-                && mostParticipantInWorkingHourCount
+                && mostParticipantsInWorkingHourCount
                 < requiredMemberCount + optionalMemberCount) {
-                mostParticipantInWorkingHourStartIndex = i - runningIntervalCount + 1;
-                mostParticipantInWorkingHourCount =
+                mostParticipantsInWorkingHourStartIndex = i - runningIntervalCount + 1;
+                mostParticipantsInWorkingHourCount =
                     requiredMemberCount + optionalMemberCount;
             }
         }
 
-        if (mostParticipantInWorkingHourStartIndex < 0) {
+        if (mostParticipantsInWorkingHourStartIndex < 0) {
             return null;
         }
 
         return MeetingRecommendation.builder()
             .recommendType(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR)
-            .startIndexInclusive(mostParticipantInWorkingHourStartIndex)
-            .endIndexExclusive(mostParticipantInWorkingHourStartIndex + runningIntervalCount)
+            .startIndexInclusive(mostParticipantsInWorkingHourStartIndex)
+            .endIndexExclusive(mostParticipantsInWorkingHourStartIndex + runningIntervalCount)
             .build();
     }
 
