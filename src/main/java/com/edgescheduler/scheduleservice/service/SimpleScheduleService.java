@@ -164,6 +164,7 @@ public class SimpleScheduleService implements ScheduleService {
     @Override
     @Transactional(readOnly = true)
     public ScheduleDetailReadResponse getSchedule(Integer memberId, Long id) {
+        log.info("getSchedule memberId: {}, scheduleId: {}", memberId, id);
         // 해당 일정 조회
         Schedule schedule = scheduleRepository.findById(id)
             .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
