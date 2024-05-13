@@ -894,10 +894,6 @@ public class SimpleScheduleService implements ScheduleService {
 
             scheduleResultList.add(individualSchedule);
         }
-        // 조회 기간 내 일정이 없는 경우
-        if (scheduleResultList.isEmpty()) {
-            throw ErrorCode.SCHEDULE_NOT_FOUND.build();
-        }
         return ScheduleListReadResponse.builder()
             .scheduleList(scheduleResultList)
             .build();
@@ -1235,7 +1231,7 @@ public class SimpleScheduleService implements ScheduleService {
             memberTimezoneRepository.findById(memberId).orElseThrow().getZoneId());
         AttendeeStatus status = decideAttendanceRequest.getStatus();
 
-        if(status.equals(attendee.getStatus())){
+        if (status.equals(attendee.getStatus())) {
             throw ErrorCode.ATTENDEE_DUPLICATED_DECISION.build();
         }
 
@@ -1258,7 +1254,6 @@ public class SimpleScheduleService implements ScheduleService {
         } else if (status.equals(AttendeeStatus.DECLINED)) {
             message.setResponse(Response.DECLINED);
         }
-
 
         kafkaProducer.send("attendee-response", message);
 
