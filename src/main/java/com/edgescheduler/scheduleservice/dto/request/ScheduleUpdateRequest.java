@@ -11,12 +11,15 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ScheduleUpdateRequest {
+
     private String name;
     private String description;
     private ScheduleType type;
     private Integer color;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
+    private LocalDateTime parentStartDatetime;
+    private LocalDateTime parentEndDatetime;
     private Boolean isPublic;
     private Boolean isRecurrence;
     private Boolean isOneOff;
@@ -29,6 +32,7 @@ public class ScheduleUpdateRequest {
     @Getter
     @Builder
     public static class RecurrenceDetails {
+
         private String freq;
         private Integer intv;
         private LocalDateTime expiredDate;
@@ -39,6 +43,7 @@ public class ScheduleUpdateRequest {
     @Getter
     @Builder
     public static class ScheduleAttendee {
+
         private Integer memberId;
         private Boolean isRequired;
     }

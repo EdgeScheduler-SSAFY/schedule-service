@@ -127,12 +127,9 @@ public class SimpleScheduleService implements ScheduleService {
                     if (attendee.getMemberId().equals(organizerId)) {
                         status = AttendeeStatus.ACCEPTED;
                     }
-                    Attendee saveAttendee = Attendee.builder()
-                        .schedule(saveSchedule)
-                        .memberId(attendee.getMemberId())
-                        .status(status)
-                        .isRequired(attendee.getIsRequired())
-                        .build();
+                    Attendee saveAttendee = Attendee.builder().schedule(saveSchedule)
+                        .memberId(attendee.getMemberId()).status(status)
+                        .isRequired(attendee.getIsRequired()).build();
                     attendeeRepository.save(saveAttendee);
                 }
             }
@@ -144,14 +141,11 @@ public class SimpleScheduleService implements ScheduleService {
                 saveSchedule.getOrganizerId());
             KafkaEventMessage message = MeetingCreateMessage.builder()
                 .occurredAt(LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-                .scheduleId(saveSchedule.getId())
-                .organizerId(saveSchedule.getOrganizerId())
-                .organizerName(response != null ? response.getName() : null)
-                .startTime(
+                .scheduleId(saveSchedule.getId()).organizerId(saveSchedule.getOrganizerId())
+                .organizerName(response != null ? response.getName() : null).startTime(
                     LocalDateTime.ofInstant(saveSchedule.getStartDatetime(), ZoneId.of("UTC")))
                 .endTime(LocalDateTime.ofInstant(saveSchedule.getEndDatetime(), ZoneId.of("UTC")))
-                .attendeeIds(attendeeIds)
-                .build();
+                .attendeeIds(attendeeIds).build();
             kafkaProducer.send("meeting-created", message);
         }
         return ScheduleCreateResponse.builder().scheduleId(saveSchedule.getId()).build();
@@ -190,9 +184,8 @@ public class SimpleScheduleService implements ScheduleService {
                 ScheduleDetailAttendee attendeeDetail = ScheduleDetailAttendee.builder()
                     .memberId(attendee.getMemberId())
                     .memberName(response != null ? response.getName() : null)
-                    .isRequired(attendee.getIsRequired())
-                    .status(attendee.getStatus()).reason(attendee.getReason())
-                    .proposal(scheduleProposal).build();
+                    .isRequired(attendee.getIsRequired()).status(attendee.getStatus())
+                    .reason(attendee.getReason()).proposal(scheduleProposal).build();
 
                 attendeeList.add(attendeeDetail);
             }
@@ -211,10 +204,9 @@ public class SimpleScheduleService implements ScheduleService {
                 expiredDatetime = AlterTimeUtils.instantToLocalDateTime(
                     schedule.getRecurrence().getExpiredDate(), zoneId);
             }
-            recurrenceDetails = ScheduleDetailReadResponse.RecurrenceDetails.builder()
-                .count(schedule.getRecurrence().getCount() != null ? schedule.getRecurrence()
-                    .getCount() : null).intv(schedule.getRecurrence().getIntv())
-                .expiredDate(expiredDatetime)
+            recurrenceDetails = ScheduleDetailReadResponse.RecurrenceDetails.builder().count(
+                    schedule.getRecurrence().getCount() != null ? schedule.getRecurrence().getCount()
+                        : null).intv(schedule.getRecurrence().getIntv()).expiredDate(expiredDatetime)
                 .recurrenceDay(recurrenceDays)
                 .freq(String.valueOf(schedule.getRecurrence().getFreq())).build();
         }
@@ -225,8 +217,7 @@ public class SimpleScheduleService implements ScheduleService {
             .color(schedule.getColor()).startDatetime(
                 AlterTimeUtils.instantToLocalDateTime(schedule.getStartDatetime(), zoneId))
             .endDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(), zoneId))
-            .isPublic(schedule.getIsPublic()).attendeeList(attendeeList)
-            .myStatus(myStatus)
+            .isPublic(schedule.getIsPublic()).attendeeList(attendeeList).myStatus(myStatus)
             .recurrenceDetails(recurrenceDetails).build();
     }
 
@@ -236,20 +227,14 @@ public class SimpleScheduleService implements ScheduleService {
         Schedule schedule = scheduleRepository.findById(scheduleId)
             .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
         AttendeeStatus status = schedule.getAttendees().stream()
-            .filter(attendee -> attendee.getMemberId().equals(receiverId))
-            .findFirst()
-            .map(Attendee::getStatus)
-            .orElseThrow(ErrorCode.ATTENDEE_NOT_FOUND::build);
-        return SimpleScheduleInfoResponse.builder()
-            .scheduleId(schedule.getId())
-            .name(schedule.getName())
-            .receiverStatus(status)
-            .organizerId(schedule.getOrganizerId())
+            .filter(attendee -> attendee.getMemberId().equals(receiverId)).findFirst()
+            .map(Attendee::getStatus).orElseThrow(ErrorCode.ATTENDEE_NOT_FOUND::build);
+        return SimpleScheduleInfoResponse.builder().scheduleId(schedule.getId())
+            .name(schedule.getName()).receiverStatus(status).organizerId(schedule.getOrganizerId())
             .organizerName(userServiceClient.getUserName(schedule.getOrganizerId()).getName())
             .startDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getStartDatetime(),
-                ZoneId.of("UTC")))
-            .endDatetime(AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(),
-                ZoneId.of("UTC")))
+                ZoneId.of("UTC"))).endDatetime(
+                AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(), ZoneId.of("UTC")))
             .build();
     }
 
@@ -266,8 +251,8 @@ public class SimpleScheduleService implements ScheduleService {
         List<Schedule> schedulesExceptMeetingList = scheduleRepository.findSchedulesExceptMeetingByOrganizerId(
             memberId);
         // 삭제되거나 수정된 회의 외 일정 리스트
-        List<Schedule> modifiedOrDeletedNonMeetingSchedules = scheduleRepository
-            .findModifiedOrDeletedNonMeetingSchedulesByOrganizerId(memberId);
+        List<Schedule> modifiedOrDeletedNonMeetingSchedules = scheduleRepository.findModifiedOrDeletedNonMeetingSchedulesByOrganizerId(
+            memberId);
         // 내가 참여 중인 attendee 리스트
         List<Attendee> attendeeList = attendeeRepository.findByMemberId(memberId);
         // 최종적으로 조회할 결과값 리스트
@@ -279,16 +264,19 @@ public class SimpleScheduleService implements ScheduleService {
         // 수정되거나 삭제된 회의 외 일정
         for (Schedule s : modifiedOrDeletedNonMeetingSchedules) {
             // 반복일정이 아니면서 기한에서 벗어나는 경우
-            if (s.getEndDatetime().isBefore(startInstant)
-                || s.getStartDatetime().isAfter(endInstant)) {
+            if (s.getEndDatetime().isBefore(startInstant) || s.getStartDatetime()
+                .isAfter(endInstant)) {
                 continue;
             }
             // 반복일정 중 선택 삭제된 일정 경우
             if (s.getIsDeleted()) {
                 DeletedSchedule deletedSchedule = DeletedSchedule.builder()
                     .parentScheduleId(s.getParentSchedule().getId())
-                    .deleteStartInstant(s.getStartDatetime())
-                    .deleteEndInstant(s.getEndDatetime())
+                    .deleteStartInstant(
+                        s.getParentStartDatetime() != null ? s.getParentStartDatetime()
+                            : s.getStartDatetime())
+                    .deleteEndInstant(s.getParentEndDatetime() != null ? s.getParentEndDatetime()
+                        : s.getEndDatetime())
                     .build();
                 deleteScheduleList.add(deletedSchedule);
                 continue;
@@ -297,8 +285,8 @@ public class SimpleScheduleService implements ScheduleService {
             if (s.getParentSchedule() != null) {
                 UpdatedSchedule updatedSchedule = UpdatedSchedule.builder()
                     .parentScheduleId(s.getParentSchedule().getId())
-                    .updateStartInstant(s.getStartDatetime())
-                    .updateEndInstant(s.getEndDatetime())
+                    .updateStartInstant(s.getParentStartDatetime())
+                    .updateEndInstant(s.getParentEndDatetime())
                     .build();
                 updatedScheduleList.add(updatedSchedule);
             }
@@ -311,13 +299,9 @@ public class SimpleScheduleService implements ScheduleService {
                     .isAfter(endInstant)) {
                     continue;
                 }
-                IndividualSchedule result = IndividualSchedule.builder()
-                    .scheduleId(s.getId())
-                    .organizerId(s.getOrganizerId())
-                    .name(s.getName())
-                    .type(s.getType())
-                    .color(s.getColor())
-                    .startDatetime(
+                IndividualSchedule result = IndividualSchedule.builder().scheduleId(s.getId())
+                    .organizerId(s.getOrganizerId()).name(s.getName()).type(s.getType())
+                    .color(s.getColor()).startDatetime(
                         AlterTimeUtils.instantToLocalDateTime(s.getStartDatetime(), zoneId))
                     .endDatetime(AlterTimeUtils.instantToLocalDateTime(s.getEndDatetime(), zoneId))
                     .isPublic(s.getIsPublic()).build();
@@ -329,8 +313,8 @@ public class SimpleScheduleService implements ScheduleService {
                 continue;
             }
             // 반복일정 & 반복 기한이 다 된 경우
-            if (s.getRecurrence().getExpiredDate() != null
-                && s.getRecurrence().getExpiredDate().isBefore(startInstant)) {
+            if (s.getRecurrence().getExpiredDate() != null && s.getRecurrence().getExpiredDate()
+                .isBefore(startInstant)) {
                 continue;
             }
             RecurrenceFreqType freq = s.getRecurrence().getFreq();
@@ -352,14 +336,14 @@ public class SimpleScheduleService implements ScheduleService {
                             .isBefore(startInstant)) {
                             continue;
                         }
-                        endLocalDatetime = AlterTimeUtils.instantToLocalDateTime(
-                            s.getEndDatetime(), zoneId);
+                        endLocalDatetime = AlterTimeUtils.instantToLocalDateTime(s.getEndDatetime(),
+                            zoneId);
                         for (int i = 0; i < count;
                             i++, startLocalDatetime = startLocalDatetime.plusDays(
                                 intv), endLocalDatetime = endLocalDatetime.plusDays(intv)) {
                             // 반복이 조회기간을 벗어나면 넘어가
-                            boolean isOutOfPeriod = isOutOfPeriod(startLocalDatetime,
-                                startInstant, endLocalDatetime, endInstant, zoneId);
+                            boolean isOutOfPeriod = isOutOfPeriod(startLocalDatetime, startInstant,
+                                endLocalDatetime, endInstant, zoneId);
                             if (isOutOfPeriod) {
                                 continue;
                             }
@@ -370,8 +354,7 @@ public class SimpleScheduleService implements ScheduleService {
                                 continue;
                             }
                             // 수정된 스케줄인 경우 넘어가기
-                            boolean isUpdatedSchedule = isUpdatedSchedule(updatedScheduleList,
-                                s,
+                            boolean isUpdatedSchedule = isUpdatedSchedule(updatedScheduleList, s,
                                 zoneId, startLocalDatetime, endLocalDatetime);
                             if (isUpdatedSchedule) {
                                 continue;
@@ -385,13 +368,9 @@ public class SimpleScheduleService implements ScheduleService {
                             }
 
                             IndividualSchedule result = IndividualSchedule.builder()
-                                .scheduleId(s.getId())
-                                .organizerId(s.getOrganizerId())
-                                .name(s.getName())
-                                .type(s.getType())
-                                .color(s.getColor())
-                                .startDatetime(startLocalDatetime)
-                                .endDatetime(endLocalDatetime)
+                                .scheduleId(s.getId()).organizerId(s.getOrganizerId())
+                                .name(s.getName()).type(s.getType()).color(s.getColor())
+                                .startDatetime(startLocalDatetime).endDatetime(endLocalDatetime)
                                 .isPublic(s.getIsPublic()).build();
                             scheduleResultList.add(result);
                         }
@@ -404,14 +383,14 @@ public class SimpleScheduleService implements ScheduleService {
                             continue;
                         }
                         // 반복이 조회기간에 존재하면 추가
-                        endLocalDatetime = AlterTimeUtils.instantToLocalDateTime(
-                            s.getEndDatetime(), zoneId);
+                        endLocalDatetime = AlterTimeUtils.instantToLocalDateTime(s.getEndDatetime(),
+                            zoneId);
                         for (int i = 0; i < count;
                             i++, startLocalDatetime = startLocalDatetime.plusMonths(
                                 intv), endLocalDatetime = endLocalDatetime.plusMonths(intv)) {
                             // 반복이 조회기간을 벗어나면 넘어가
-                            boolean isOutOfPeriod = isOutOfPeriod(startLocalDatetime,
-                                startInstant, endLocalDatetime, endInstant, zoneId);
+                            boolean isOutOfPeriod = isOutOfPeriod(startLocalDatetime, startInstant,
+                                endLocalDatetime, endInstant, zoneId);
                             if (isOutOfPeriod) {
                                 continue;
                             }
@@ -422,8 +401,7 @@ public class SimpleScheduleService implements ScheduleService {
                                 continue;
                             }
                             // 수정된 일정인 경우 넘어가
-                            boolean isUpdatedSchedule = isUpdatedSchedule(updatedScheduleList,
-                                s,
+                            boolean isUpdatedSchedule = isUpdatedSchedule(updatedScheduleList, s,
                                 zoneId, startLocalDatetime, endLocalDatetime);
                             if (isUpdatedSchedule) {
                                 continue;
@@ -437,13 +415,9 @@ public class SimpleScheduleService implements ScheduleService {
                             }
 
                             IndividualSchedule result = IndividualSchedule.builder()
-                                .scheduleId(s.getId())
-                                .organizerId(s.getOrganizerId())
-                                .name(s.getName())
-                                .type(s.getType())
-                                .color(s.getColor())
-                                .startDatetime(startLocalDatetime)
-                                .endDatetime(endLocalDatetime)
+                                .scheduleId(s.getId()).organizerId(s.getOrganizerId())
+                                .name(s.getName()).type(s.getType()).color(s.getColor())
+                                .startDatetime(startLocalDatetime).endDatetime(endLocalDatetime)
                                 .isPublic(s.getIsPublic()).build();
                             scheduleResultList.add(result);
                         }
@@ -463,8 +437,8 @@ public class SimpleScheduleService implements ScheduleService {
                         if (endLocalDatetime.isBefore(startLocalDatetime)) {
                             continue;
                         }
-                        endLocalDatetime = AlterTimeUtils.instantToLocalDateTime(
-                            s.getEndDatetime(), zoneId);
+                        endLocalDatetime = AlterTimeUtils.instantToLocalDateTime(s.getEndDatetime(),
+                            zoneId);
                         weekly:
                         for (int i = 0; i < count;
                             i++, startLocalDatetime = startLocalDatetime.plusWeeks(
@@ -485,15 +459,14 @@ public class SimpleScheduleService implements ScheduleService {
                                     continue;
                                 }
                                 // 삭제된 일정인 경우 넘어가
-                                boolean isDeletedSchedule = isDeletedSchedule(deleteScheduleList,
-                                    s, startLocalDatetime, endLocalDatetime, zoneId);
+                                boolean isDeletedSchedule = isDeletedSchedule(deleteScheduleList, s,
+                                    startLocalDatetime, endLocalDatetime, zoneId);
                                 if (isDeletedSchedule) {
                                     continue;
                                 }
                                 // 수정된 일정인 경우 넘어가
                                 boolean isUpdatedSchedule = isUpdatedSchedule(updatedScheduleList,
-                                    s,
-                                    zoneId, weekStartLocalDatetime, weekEndLocalDatetime);
+                                    s, zoneId, weekStartLocalDatetime, weekEndLocalDatetime);
                                 if (isUpdatedSchedule) {
                                     continue;
                                 }
@@ -506,14 +479,11 @@ public class SimpleScheduleService implements ScheduleService {
                                 }
 
                                 IndividualSchedule result = IndividualSchedule.builder()
-                                    .scheduleId(s.getId())
-                                    .organizerId(s.getOrganizerId())
-                                    .name(s.getName())
-                                    .type(s.getType())
-                                    .color(s.getColor())
+                                    .scheduleId(s.getId()).organizerId(s.getOrganizerId())
+                                    .name(s.getName()).type(s.getType()).color(s.getColor())
                                     .startDatetime(weekStartLocalDatetime)
-                                    .endDatetime(weekEndLocalDatetime)
-                                    .isPublic(s.getIsPublic()).build();
+                                    .endDatetime(weekEndLocalDatetime).isPublic(s.getIsPublic())
+                                    .build();
                                 scheduleResultList.add(result);
                             }
                         }
@@ -535,8 +505,8 @@ public class SimpleScheduleService implements ScheduleService {
                             && AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime, zoneId)
                             .isBefore(endInstant)) {
                             // 반복 종료일이 조회 시작기간보다 이전인 경우 그냥 넘어가
-                            if (AlterTimeUtils.LocalDateTimeToInstant(
-                                endLocalDatetime, zoneId).isBefore(startInstant)) {
+                            if (AlterTimeUtils.LocalDateTimeToInstant(endLocalDatetime, zoneId)
+                                .isBefore(startInstant)) {
                                 startLocalDatetime = startLocalDatetime.plusDays(intv);
                                 endLocalDatetime = endLocalDatetime.plusDays(intv);
                                 continue;
@@ -559,21 +529,16 @@ public class SimpleScheduleService implements ScheduleService {
                             }
 
                             // AFTERALL 삭제된 일정인 경우 넘어가
-                            if (!AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime,
-                                zoneId).isBefore(s.getRecurrence().getExpiredDate())) {
+                            if (!AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime, zoneId)
+                                .isBefore(s.getRecurrence().getExpiredDate())) {
                                 continue;
                             }
 
                             IndividualSchedule individualSchedule = IndividualSchedule.builder()
-                                .scheduleId(s.getId())
-                                .name(s.getName())
-                                .organizerId(s.getOrganizerId())
-                                .type(s.getType())
-                                .color(s.getColor())
-                                .startDatetime(startLocalDatetime)
-                                .endDatetime(endLocalDatetime)
-                                .isPublic(s.getIsPublic())
-                                .build();
+                                .scheduleId(s.getId()).name(s.getName())
+                                .organizerId(s.getOrganizerId()).type(s.getType())
+                                .color(s.getColor()).startDatetime(startLocalDatetime)
+                                .endDatetime(endLocalDatetime).isPublic(s.getIsPublic()).build();
                             scheduleResultList.add(individualSchedule);
                             startLocalDatetime = startLocalDatetime.plusDays(intv);
                             endLocalDatetime = endLocalDatetime.plusDays(intv);
@@ -586,8 +551,8 @@ public class SimpleScheduleService implements ScheduleService {
                             && AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime, zoneId)
                             .isBefore(endInstant)) {
                             // 반복 종료일이 조회 시작기간보다 이전인 경우 그냥 넘어가
-                            if (AlterTimeUtils.LocalDateTimeToInstant(
-                                endLocalDatetime, zoneId).isBefore(startInstant)) {
+                            if (AlterTimeUtils.LocalDateTimeToInstant(endLocalDatetime, zoneId)
+                                .isBefore(startInstant)) {
                                 startLocalDatetime = startLocalDatetime.plusMonths(intv);
                                 endLocalDatetime = endLocalDatetime.plusMonths(intv);
                                 continue;
@@ -609,21 +574,16 @@ public class SimpleScheduleService implements ScheduleService {
                                 continue;
                             }
                             // AFTERALL 삭제된 일정인 경우 넘어가
-                            if (!AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime,
-                                zoneId).isBefore(s.getRecurrence().getExpiredDate())) {
+                            if (!AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime, zoneId)
+                                .isBefore(s.getRecurrence().getExpiredDate())) {
                                 continue;
                             }
 
                             IndividualSchedule individualSchedule = IndividualSchedule.builder()
-                                .scheduleId(s.getId())
-                                .name(s.getName())
-                                .organizerId(s.getOrganizerId())
-                                .type(s.getType())
-                                .color(s.getColor())
-                                .startDatetime(startLocalDatetime)
-                                .endDatetime(endLocalDatetime)
-                                .isPublic(s.getIsPublic())
-                                .build();
+                                .scheduleId(s.getId()).name(s.getName())
+                                .organizerId(s.getOrganizerId()).type(s.getType())
+                                .color(s.getColor()).startDatetime(startLocalDatetime)
+                                .endDatetime(endLocalDatetime).isPublic(s.getIsPublic()).build();
                             scheduleResultList.add(individualSchedule);
                             startLocalDatetime = startLocalDatetime.plusMonths(intv);
                             endLocalDatetime = endLocalDatetime.plusMonths(intv);
@@ -663,15 +623,15 @@ public class SimpleScheduleService implements ScheduleService {
                                     continue;
                                 }
                                 // 삭제된 일정인 경우 넘어가
-                                boolean isDeletedSchedule = isDeletedSchedule(deleteScheduleList,
-                                    s, weekStartLocalDatetime, weekEndLocalDatetime, zoneId);
+                                boolean isDeletedSchedule = isDeletedSchedule(deleteScheduleList, s,
+                                    weekStartLocalDatetime, weekEndLocalDatetime, zoneId
+                                );
                                 if (isDeletedSchedule) {
                                     continue;
                                 }
                                 // 수정된 일정인 경우 넘어가
                                 boolean isUpdatedSchedule = isUpdatedSchedule(updatedScheduleList,
-                                    s,
-                                    zoneId, weekStartLocalDatetime, weekEndLocalDatetime);
+                                    s, zoneId, weekStartLocalDatetime, weekEndLocalDatetime);
                                 if (isUpdatedSchedule) {
                                     continue;
                                 }
@@ -682,14 +642,11 @@ public class SimpleScheduleService implements ScheduleService {
                                 }
 
                                 IndividualSchedule result = IndividualSchedule.builder()
-                                    .scheduleId(s.getId())
-                                    .organizerId(s.getOrganizerId())
-                                    .name(s.getName())
-                                    .type(s.getType())
-                                    .color(s.getColor())
+                                    .scheduleId(s.getId()).organizerId(s.getOrganizerId())
+                                    .name(s.getName()).type(s.getType()).color(s.getColor())
                                     .startDatetime(weekStartLocalDatetime)
-                                    .endDatetime(weekEndLocalDatetime)
-                                    .isPublic(s.getIsPublic()).build();
+                                    .endDatetime(weekEndLocalDatetime).isPublic(s.getIsPublic())
+                                    .build();
                                 scheduleResultList.add(result);
                             }
                         }
@@ -709,8 +666,7 @@ public class SimpleScheduleService implements ScheduleService {
                             .isBefore(endInstant)) {
                             // 반복 종료일이 조회 시작기간보다 이전인 경우 그냥 넘어가
                             if (AlterTimeUtils.LocalDateTimeToInstant(endLocalDatetime, zoneId)
-                                .isBefore(startInstant)
-                            ) {
+                                .isBefore(startInstant)) {
                                 startLocalDatetime = startLocalDatetime.plusDays(intv);
                                 endLocalDatetime = endLocalDatetime.plusDays(intv);
                                 continue;
@@ -733,15 +689,10 @@ public class SimpleScheduleService implements ScheduleService {
                             }
 
                             IndividualSchedule individualSchedule = IndividualSchedule.builder()
-                                .name(s.getName())
-                                .organizerId(memberId)
-                                .scheduleId(s.getId())
-                                .type(s.getType())
-                                .color(s.getColor())
-                                .startDatetime(startLocalDatetime)
-                                .endDatetime(endLocalDatetime)
-                                .isPublic(s.getIsPublic())
-                                .build();
+                                .name(s.getName()).organizerId(memberId).scheduleId(s.getId())
+                                .type(s.getType()).color(s.getColor())
+                                .startDatetime(startLocalDatetime).endDatetime(endLocalDatetime)
+                                .isPublic(s.getIsPublic()).build();
                             scheduleResultList.add(individualSchedule);
 
                             startLocalDatetime = startLocalDatetime.plusDays(intv);
@@ -754,8 +705,7 @@ public class SimpleScheduleService implements ScheduleService {
                             .isBefore(endInstant)) {
                             // 반복 종료일이 조회 시작기간보다 이전인 경우 그냥 넘어가
                             if (AlterTimeUtils.LocalDateTimeToInstant(endLocalDatetime, zoneId)
-                                .isBefore(startInstant)
-                            ) {
+                                .isBefore(startInstant)) {
                                 startLocalDatetime = startLocalDatetime.plusMonths(intv);
                                 endLocalDatetime = endLocalDatetime.plusMonths(intv);
                                 continue;
@@ -776,15 +726,10 @@ public class SimpleScheduleService implements ScheduleService {
                                 continue;
                             }
                             IndividualSchedule individualSchedule = IndividualSchedule.builder()
-                                .name(s.getName())
-                                .organizerId(memberId)
-                                .scheduleId(s.getId())
-                                .type(s.getType())
-                                .color(s.getColor())
-                                .startDatetime(startLocalDatetime)
-                                .endDatetime(endLocalDatetime)
-                                .isPublic(s.getIsPublic())
-                                .build();
+                                .name(s.getName()).organizerId(memberId).scheduleId(s.getId())
+                                .type(s.getType()).color(s.getColor())
+                                .startDatetime(startLocalDatetime).endDatetime(endLocalDatetime)
+                                .isPublic(s.getIsPublic()).build();
                             scheduleResultList.add(individualSchedule);
 
                             startLocalDatetime = startLocalDatetime.plusMonths(intv);
@@ -826,28 +771,25 @@ public class SimpleScheduleService implements ScheduleService {
                                     continue;
                                 }
                                 // 삭제된 일정인 경우 넘어가
-                                boolean isDeletedSchedule = isDeletedSchedule(deleteScheduleList,
-                                    s, weekStartLocalDatetime, weekEndLocalDatetime, zoneId);
+                                boolean isDeletedSchedule = isDeletedSchedule(deleteScheduleList, s,
+                                    weekStartLocalDatetime, weekEndLocalDatetime, zoneId
+                                );
                                 if (isDeletedSchedule) {
                                     continue;
                                 }
                                 // 수정된 일정인 경우 넘어가
                                 boolean isUpdatedSchedule = isUpdatedSchedule(updatedScheduleList,
-                                    s,
-                                    zoneId, weekStartLocalDatetime, weekEndLocalDatetime);
+                                    s, zoneId, weekStartLocalDatetime, weekEndLocalDatetime);
                                 if (isUpdatedSchedule) {
                                     continue;
                                 }
 
                                 IndividualSchedule result = IndividualSchedule.builder()
-                                    .scheduleId(s.getId())
-                                    .organizerId(s.getOrganizerId())
-                                    .name(s.getName())
-                                    .type(s.getType())
-                                    .color(s.getColor())
+                                    .scheduleId(s.getId()).organizerId(s.getOrganizerId())
+                                    .name(s.getName()).type(s.getType()).color(s.getColor())
                                     .startDatetime(weekStartLocalDatetime)
-                                    .endDatetime(weekEndLocalDatetime)
-                                    .isPublic(s.getIsPublic()).build();
+                                    .endDatetime(weekEndLocalDatetime).isPublic(s.getIsPublic())
+                                    .build();
                                 scheduleResultList.add(result);
                             }
                         }
@@ -857,8 +799,8 @@ public class SimpleScheduleService implements ScheduleService {
         }
         // 회의 일정
         for (Attendee a : attendeeList) {
-            Schedule meetingWithMe = scheduleRepository.findById(
-                a.getSchedule().getId()).orElseThrow();
+            Schedule meetingWithMe = scheduleRepository.findById(a.getSchedule().getId())
+                .orElseThrow();
             if (meetingWithMe.getStartDatetime().isAfter(endInstant)) {
                 continue;
             }
@@ -866,21 +808,15 @@ public class SimpleScheduleService implements ScheduleService {
                 continue;
             }
             IndividualSchedule individualSchedule = IndividualSchedule.builder()
-                .scheduleId(meetingWithMe.getId())
-                .organizerId(meetingWithMe.getOrganizerId())
-                .name(meetingWithMe.getName())
-                .type(meetingWithMe.getType())
-                .color(meetingWithMe.getColor())
-                .startDatetime(
+                .scheduleId(meetingWithMe.getId()).organizerId(meetingWithMe.getOrganizerId())
+                .name(meetingWithMe.getName()).type(meetingWithMe.getType())
+                .color(meetingWithMe.getColor()).startDatetime(
                     AlterTimeUtils.instantToLocalDateTime(meetingWithMe.getStartDatetime(), zoneId))
                 .endDatetime(
                     AlterTimeUtils.instantToLocalDateTime(meetingWithMe.getEndDatetime(), zoneId))
-                .isPublic(meetingWithMe.getIsPublic())
-                .meetingDetail(MeetingScheduleDetail.builder()
-                    .isRequired(a.getIsRequired())
-                    .status(String.valueOf(a.getStatus()))
-                    .reason(a.getReason())
-                    .build())
+                .isPublic(meetingWithMe.getIsPublic()).meetingDetail(
+                    MeetingScheduleDetail.builder().isRequired(a.getIsRequired())
+                        .status(String.valueOf(a.getStatus())).reason(a.getReason()).build())
                 .build();
 
             scheduleResultList.add(individualSchedule);
@@ -889,9 +825,7 @@ public class SimpleScheduleService implements ScheduleService {
         if (scheduleResultList.isEmpty()) {
             throw ErrorCode.SCHEDULE_NOT_FOUND.build();
         }
-        return ScheduleListReadResponse.builder()
-            .scheduleList(scheduleResultList)
-            .build();
+        return ScheduleListReadResponse.builder().scheduleList(scheduleResultList).build();
     }
 
     @Override
@@ -905,6 +839,8 @@ public class SimpleScheduleService implements ScheduleService {
         Integer color = scheduleRequest.getColor();
         LocalDateTime startDatetime = scheduleRequest.getStartDatetime();
         LocalDateTime endDatetime = scheduleRequest.getEndDatetime();
+        LocalDateTime parentStartDatetime = scheduleRequest.getParentStartDatetime();
+        LocalDateTime parentEndDatetime = scheduleRequest.getParentEndDatetime();
         Boolean isPublic = scheduleRequest.getIsPublic();
         Boolean isRecurrence = scheduleRequest.getIsRecurrence();
         Boolean isOneOff = scheduleRequest.getIsOneOff();
@@ -926,35 +862,36 @@ public class SimpleScheduleService implements ScheduleService {
         validateOrganizer(savedSchedule, memberId);
         // 회의 외의 일정인 경우
         if (!String.valueOf(savedSchedule.getType()).equals("MEETING")) {
+            // 반복에서 하루 수정된 일정이 또 수정되는 경우
+            if (!isRecurrence && savedSchedule.getParentSchedule() != null) {
+                savedSchedule.updateNotRecurrencePrivateSchedule(organizerId, name,
+                    description,
+                    type, startInstant, endInstant, isPublic, color);
+                return ScheduleUpdateResponse.builder().scheduleId(savedSchedule.getId()).build();
+            }
             // 반복 일정 & 해당 이벤트만 수정
-            if (isRecurrence && isOneOff) {
-                // 해당 날짜에 이미 수정된 이력이 있는 일정인 경우 삭제
-                List<Schedule> alreadyModifiedScheduleList = scheduleRepository.findModifiedScheduleByParentSchedule(
-                    savedSchedule);
-                if (alreadyModifiedScheduleList != null && !alreadyModifiedScheduleList.isEmpty()) {
-                    for (Schedule ms : alreadyModifiedScheduleList) {
-                        if (AlterTimeUtils.instantToLocalDateTime(ms.getStartDatetime(), zoneId)
-                            .toLocalDate().isEqual(startDatetime.toLocalDate())) {
-                            scheduleRepository.delete(ms);
-                            break;
-                        }
-                    }
-                }
-                Schedule modifiedSchedule = Schedule.builder().organizerId(organizerId)
-                    .name(name)
+            if (Boolean.TRUE.equals(isRecurrence) && isOneOff) {
+                Instant parentStartInstant = AlterTimeUtils.LocalDateTimeToInstant(
+                    parentStartDatetime,
+                    zoneId);
+                Instant parentEndInstant = AlterTimeUtils.LocalDateTimeToInstant(parentEndDatetime,
+                    zoneId);
+                Schedule modifiedSchedule = Schedule.builder().organizerId(organizerId).name(name)
                     .description(description).type(type).startDatetime(startInstant)
                     .endDatetime(endInstant).isPublic(isPublic).color(color).isDeleted(false)
+                    .parentStartDatetime(parentStartInstant)
+                    .parentEndDatetime(parentEndInstant)
                     .parentSchedule(savedSchedule).build();
                 Schedule result = scheduleRepository.save(modifiedSchedule);
                 return ScheduleUpdateResponse.builder().scheduleId(result.getId()).build();
             }
+
             // 반복 일정 & 이후 모든 이벤트 수정
-            if (isRecurrence && !isOneOff) {
+            if (Boolean.TRUE.equals(isRecurrence)) {
                 // 기본 반복 기한 오늘 날짜로 수정하기
-                savedSchedule.getRecurrence()
-                    .terminateRecurrenceByDate(
-                        AlterTimeUtils.LocalDateTimeToInstant(startDatetime.toLocalDate()
-                            .atStartOfDay(), zoneId));
+                savedSchedule.getRecurrence().terminateRecurrenceByDate(
+                    AlterTimeUtils.LocalDateTimeToInstant(
+                        startDatetime.toLocalDate().atStartOfDay(), zoneId));
                 // 새로운 반복 일정 추가하기
                 String freq = recurrence.getFreq();
                 Integer intv = recurrence.getIntv();
@@ -971,30 +908,26 @@ public class SimpleScheduleService implements ScheduleService {
                 }
                 Recurrence newRecurrence = Recurrence.builder()
                     .freq(freq != null ? RecurrenceFreqType.valueOf(freq) : null).intv(intv)
-                    .expiredDate(expiredInstant).count(count).recurrenceDay(recurrenceDay)
-                    .build();
+                    .expiredDate(expiredInstant).count(count).recurrenceDay(recurrenceDay).build();
 
                 // 일정 추가하기
-                Schedule modifiedSchedule = Schedule.builder().organizerId(organizerId)
-                    .name(name)
+                Schedule modifiedSchedule = Schedule.builder().organizerId(organizerId).name(name)
                     .description(description).type(type).startDatetime(startInstant)
                     .endDatetime(endInstant).isPublic(isPublic).color(color)
-                    .parentSchedule(savedSchedule)
-                    .recurrence(newRecurrence).isDeleted(false).build();
+                    .parentSchedule(savedSchedule).recurrence(newRecurrence).isDeleted(false)
+                    .build();
                 Schedule result = scheduleRepository.save(modifiedSchedule);
                 return ScheduleUpdateResponse.builder().scheduleId(result.getId()).build();
             }
-
-            // 반복하지 않는 일정
-            savedSchedule.updateNotRecurrencePrivateSchedule(organizerId, name, description,
-                type, startInstant, endInstant, isPublic, color);
+            // 그냥 반복하지 않는 일정
+            savedSchedule.updateNotRecurrencePrivateSchedule(organizerId, name, description, type,
+                startInstant, endInstant, isPublic, color);
             return ScheduleUpdateResponse.builder().scheduleId(savedSchedule.getId()).build();
         }
 
         // 회의 일정인 경우 //
         // 기존 참석자 명단
-        List<Attendee> originalAttendeeList = attendeeRepository.findBySchedule(
-            savedSchedule);
+        List<Attendee> originalAttendeeList = attendeeRepository.findBySchedule(savedSchedule);
         List<Integer> originalAttendeeIdList = new ArrayList<>();
         for (Attendee originalAttendee : originalAttendeeList) {
             originalAttendeeIdList.add(originalAttendee.getMemberId());
@@ -1013,8 +946,7 @@ public class SimpleScheduleService implements ScheduleService {
         }
 
         // 일정 업데이트
-        savedSchedule.updateMeetingSchedule(name, description, type, startInstant,
-            endInstant,
+        savedSchedule.updateMeetingSchedule(name, description, type, startInstant, endInstant,
             isPublic, color, newAttendeeList);
 
         List<Integer> cancelMemberList = new ArrayList<>();
@@ -1042,21 +974,15 @@ public class SimpleScheduleService implements ScheduleService {
         UserInfoResponse response = userServiceClient.getUserName(organizerId);
         MeetingUpdateMessage message = MeetingUpdateMessage.builder()
             .occurredAt(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-            .scheduleId(scheduleId)
-            .scheduleName(savedSchedule.getName())
+            .scheduleId(scheduleId).scheduleName(savedSchedule.getName())
             .organizerId(savedSchedule.getOrganizerId())
-            .organizerName(response != null ? response.getName() : null)
-            .previousStartTime(null)
-            .previousEndTime(null)
-            .updatedStartTime(
+            .organizerName(response != null ? response.getName() : null).previousStartTime(null)
+            .previousEndTime(null).updatedStartTime(
                 AlterTimeUtils.InstantToUTCLocalDateTime(savedSchedule.getStartDatetime()))
             .updatedEndTime(
                 AlterTimeUtils.InstantToUTCLocalDateTime(savedSchedule.getEndDatetime()))
-            .maintainedAttendeeIds(maintainedMemberList)
-            .addedAttendeeIds(addMemberList)
-            .removedAttendeeIds(cancelMemberList)
-            .updatedFields(null)
-            .build();
+            .maintainedAttendeeIds(maintainedMemberList).addedAttendeeIds(addMemberList)
+            .removedAttendeeIds(cancelMemberList).updatedFields(null).build();
 
         List<UpdatedField> updatedFields = new ArrayList<>();
 
@@ -1099,8 +1025,8 @@ public class SimpleScheduleService implements ScheduleService {
             && scheduleDeleteRequest.getDeleteStartDatetime() != null) {
             deleteStartLocalDatetime = scheduleDeleteRequest.getDeleteStartDatetime();
             deleteEndLocalDatetime = scheduleDeleteRequest.getDeleteEndDatetime();
-            startDeleteInstant =
-                AlterTimeUtils.LocalDateTimeToInstant(deleteStartLocalDatetime, zoneId);
+            startDeleteInstant = AlterTimeUtils.LocalDateTimeToInstant(deleteStartLocalDatetime,
+                zoneId);
             endDeleteInstant = AlterTimeUtils.LocalDateTimeToInstant(deleteEndLocalDatetime,
                 zoneId);
         }
@@ -1123,23 +1049,20 @@ public class SimpleScheduleService implements ScheduleService {
             // 일정 삭제
             scheduleRepository.delete(schedule);
             UserInfoResponse response = userServiceClient.getUserName(schedule.getOrganizerId());
-            MeetingDeleteMessage message = MeetingDeleteMessage.builder()
-                .occurredAt(
+            MeetingDeleteMessage message = MeetingDeleteMessage.builder().occurredAt(
                     AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-                .scheduleId(id)
-                .scheduleName(schedule.getName())
+                .scheduleId(id).scheduleName(schedule.getName())
                 .organizerId(schedule.getOrganizerId())
                 .organizerName(response != null ? response.getName() : null)
                 .startTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getStartDatetime()))
                 .endTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getEndDatetime()))
-                .attendeeIds(attendeeList.stream().map(Attendee::getMemberId).toList())
-                .build();
+                .attendeeIds(attendeeList.stream().map(Attendee::getMemberId).toList()).build();
             kafkaProducer.send("meeting-deleted", message);
             return;
         }
 
         // 반복 없는 회의 외 일정인 경우
-        if (schedule.getRecurrence() == null) {
+        if (schedule.getRecurrence() == null && schedule.getParentSchedule() == null) {
             scheduleRepository.delete(schedule);
             return;
         }
@@ -1187,12 +1110,16 @@ public class SimpleScheduleService implements ScheduleService {
                 break;
             // 2. 선택적으로 삭제하는 경우
             case ONE:
-                scheduleRepository.save(Schedule.builder().name(schedule.getName())
-                    .organizerId(schedule.getOrganizerId())
-                    .description(schedule.getDescription())
-                    .type(schedule.getType()).startDatetime(startDeleteInstant)
-                    .endDatetime(endDeleteInstant).isPublic(schedule.getIsPublic())
-                    .color(schedule.getColor()).isDeleted(true).parentSchedule(schedule).build());
+                Schedule deletedSchedule = scheduleRepository.save(
+                    Schedule.builder().name(schedule.getName())
+                        .organizerId(schedule.getOrganizerId())
+                        .description(schedule.getDescription())
+                        .type(schedule.getType()).startDatetime(startDeleteInstant)
+                        .endDatetime(endDeleteInstant).isPublic(schedule.getIsPublic())
+                        .color(schedule.getColor()).isDeleted(true).parentSchedule(schedule)
+                        .build());
+                scheduleRepository.findById(
+                    deletedSchedule.getParentSchedule().getId()).orElseThrow().deleteSchedule();
                 break;
             // 3. 해당일자부터 모두 삭제하는 경우(종료시작시간부터 만료)
             default:
@@ -1214,7 +1141,7 @@ public class SimpleScheduleService implements ScheduleService {
             memberTimezoneRepository.findById(memberId).orElseThrow().getZoneId());
         AttendeeStatus status = decideAttendanceRequest.getStatus();
 
-        if(status.equals(attendee.getStatus())){
+        if (status.equals(attendee.getStatus())) {
             throw ErrorCode.ATTENDEE_DUPLICATED_DECISION.build();
         }
 
@@ -1222,11 +1149,9 @@ public class SimpleScheduleService implements ScheduleService {
         UserInfoResponse response = userServiceClient.getUserName(memberId);
         AttendeeResponseMessage message = AttendeeResponseMessage.builder()
             .occurredAt(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-            .scheduleId(scheduleId)
-            .scheduleName(schedule.getName())
+            .scheduleId(scheduleId).scheduleName(schedule.getName())
             .organizerId(schedule.getOrganizerId())
-            .attendeeName(response != null ? response.getName() : null)
-            .build();
+            .attendeeName(response != null ? response.getName() : null).build();
 
         // 수락시
         if (status.equals(AttendeeStatus.ACCEPTED)) {
@@ -1236,32 +1161,27 @@ public class SimpleScheduleService implements ScheduleService {
             message.setResponse(Response.DECLINED);
         }
 
-
         kafkaProducer.send("attendee-response", message);
 
         if (decideAttendanceRequest.getStartDatetime() != null) {
-            Proposal proposal = Proposal.builder()
-                .startDatetime(AlterTimeUtils.LocalDateTimeToInstant(
-                    decideAttendanceRequest.getStartDatetime(), zoneId))
-                .endDatetime(AlterTimeUtils.LocalDateTimeToInstant(
-                    decideAttendanceRequest.getEndDatetime(), zoneId))
-                .build();
+            Proposal proposal = Proposal.builder().startDatetime(
+                AlterTimeUtils.LocalDateTimeToInstant(decideAttendanceRequest.getStartDatetime(),
+                    zoneId)).endDatetime(
+                AlterTimeUtils.LocalDateTimeToInstant(decideAttendanceRequest.getEndDatetime(),
+                    zoneId)).build();
             Proposal savedProposal = proposalRepository.save(proposal);
             attendee.updateProposal(savedProposal);
 
-            AttendeeProposalMessage proposalMessage = AttendeeProposalMessage.builder()
-                .occurredAt(
+            AttendeeProposalMessage proposalMessage = AttendeeProposalMessage.builder().occurredAt(
                     AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-                .scheduleId(scheduleId)
-                .scheduleName(schedule.getName())
+                .scheduleId(scheduleId).scheduleName(schedule.getName())
                 .organizerId(schedule.getOrganizerId())
-                .attendeeName(response != null ? response.getName() : null)
-                .proposedStartTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
-                    decideAttendanceRequest.getStartDatetime(), zoneId))
-                .proposedEndTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
-                    decideAttendanceRequest.getEndDatetime(), zoneId))
-                .reason(decideAttendanceRequest.getReason())
-                .build();
+                .attendeeName(response != null ? response.getName() : null).proposedStartTime(
+                    AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
+                        decideAttendanceRequest.getStartDatetime(), zoneId)).proposedEndTime(
+                    AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
+                        decideAttendanceRequest.getEndDatetime(), zoneId))
+                .reason(decideAttendanceRequest.getReason()).build();
             kafkaProducer.send("attendee-proposal", proposalMessage);
         }
     }
@@ -1294,21 +1214,17 @@ public class SimpleScheduleService implements ScheduleService {
             schedule.changeScheduleTime(startInstant, endInstant);
             // 회의 주체자 이름
             UserInfoResponse response = userServiceClient.getUserName(memberId);
-            MeetingUpdateMessage message = MeetingUpdateMessage.builder()
-                .occurredAt(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(),
-                    ZoneId.of(
+            MeetingUpdateMessage message = MeetingUpdateMessage.builder().occurredAt(
+                    AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), ZoneId.of(
                         memberTimezoneRepository.findById(memberId).orElseThrow().getZoneId())))
-                .scheduleId(scheduleId)
-                .scheduleName(schedule.getName())
-                .organizerId(schedule.getOrganizerId())
-                .organizerName(response.getName())
+                .scheduleId(scheduleId).scheduleName(schedule.getName())
+                .organizerId(schedule.getOrganizerId()).organizerName(response.getName())
                 .previousStartTime(AlterTimeUtils.InstantToUTCLocalDateTime(originalStartInstant))
                 .previousEndTime(AlterTimeUtils.InstantToUTCLocalDateTime(originalEndInstant))
                 .updatedStartTime(AlterTimeUtils.InstantToUTCLocalDateTime(startInstant))
                 .updatedEndTime(AlterTimeUtils.InstantToUTCLocalDateTime(endInstant))
                 .maintainedAttendeeIds(attendeeList.stream().map(Attendee::getMemberId).toList())
-                .updatedFields(List.of(UpdatedField.TIME))
-                .build();
+                .updatedFields(List.of(UpdatedField.TIME)).build();
             // 수정 사항 전송
             kafkaProducer.send("meeting-updated", message);
             // 나머지 제안 다 삭제
@@ -1334,10 +1250,10 @@ public class SimpleScheduleService implements ScheduleService {
         LocalDateTime startDatetime, LocalDateTime endDatetime, ZoneId zoneId) {
         for (DeletedSchedule d : deleteScheduleList) {
             if (d.getDeleteStartInstant()
-                .equals(AlterTimeUtils.LocalDateTimeToInstant(startDatetime, zoneId)) &&
-                d.getDeleteEndInstant()
-                    .equals(AlterTimeUtils.LocalDateTimeToInstant(endDatetime, zoneId)) &&
-                Objects.equals(d.getParentScheduleId(), s.getId())) {
+                .equals(AlterTimeUtils.LocalDateTimeToInstant(startDatetime, zoneId))
+                && d.getDeleteEndInstant()
+                .equals(AlterTimeUtils.LocalDateTimeToInstant(endDatetime, zoneId))
+                && Objects.equals(d.getParentScheduleId(), s.getId())) {
                 return true;
             }
         }
@@ -1349,14 +1265,11 @@ public class SimpleScheduleService implements ScheduleService {
         ZoneId zoneId, LocalDateTime startDatetime, LocalDateTime endDatetime) {
 
         for (UpdatedSchedule u : updatedScheduleList) {
-            if (AlterTimeUtils.instantToLocalDateTime(u.getUpdateStartInstant(),
-                    zoneId).toLocalDate().atStartOfDay()
-                .isBefore(startDatetime) &&
-                AlterTimeUtils.instantToLocalDateTime(u.getUpdateEndInstant(),
-                        zoneId).toLocalDate().plusDays(1).atStartOfDay()
-                    .isAfter(endDatetime)
-                && u.getParentScheduleId()
-                .equals(s.getId())) {
+            if (AlterTimeUtils.instantToLocalDateTime(u.getUpdateStartInstant(), zoneId)
+                .equals(startDatetime)
+                && AlterTimeUtils.instantToLocalDateTime(u.getUpdateEndInstant(), zoneId)
+                .equals(endDatetime)
+                && u.getParentScheduleId().equals(s.getId())) {
                 return true;
             }
         }
@@ -1365,22 +1278,21 @@ public class SimpleScheduleService implements ScheduleService {
 
     // 조회 기간을 벗어나는 경우 체크하기
     public boolean isOutOfPeriod(LocalDateTime startLocalDatetime, Instant startInstant,
-        LocalDateTime endLocalDatetime, Instant endInstant,
-        ZoneId zoneId) {
-        return !AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime, zoneId)
-            .isBefore(endInstant) || !AlterTimeUtils.LocalDateTimeToInstant(
-            endLocalDatetime, zoneId).isAfter(startInstant);
+        LocalDateTime endLocalDatetime, Instant endInstant, ZoneId zoneId) {
+        return
+            !AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime, zoneId).isBefore(endInstant)
+                || !AlterTimeUtils.LocalDateTimeToInstant(endLocalDatetime, zoneId)
+                .isAfter(startInstant);
     }
 
     // 주 반복 요일 순서 정렬하기
-    public List<Integer> sortDayList(EnumSet<RecurrenceDayType> recurrenceDay, DayOfWeek
-        startDay) {
+    public List<Integer> sortDayList(EnumSet<RecurrenceDayType> recurrenceDay, DayOfWeek startDay) {
         List<Integer> dayList = new ArrayList<>();
         PriorityQueue<Integer> dayQueue = new PriorityQueue<>();
         for (RecurrenceDayType day : recurrenceDay) {
-            dayQueue.add(day.ordinal() - startDay.ordinal() < 0 ?
-                day.ordinal() - startDay.ordinal() + 7
-                : day.ordinal() - startDay.ordinal());
+            dayQueue.add(
+                day.ordinal() - startDay.ordinal() < 0 ? day.ordinal() - startDay.ordinal() + 7
+                    : day.ordinal() - startDay.ordinal());
         }
         while (!dayQueue.isEmpty()) {
             dayList.add(dayQueue.poll());
