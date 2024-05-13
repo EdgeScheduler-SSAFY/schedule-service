@@ -246,7 +246,7 @@ class ScheduleMediateServiceTest {
                         .build()
                 ));
         MeetingRecommendation recommendation = scheduleMediateService.findFastestMeeting(
-            requiredMemberSaMap, optionalMemberSaMap, 3, 17);
+            requiredMemberSaMap, 3, 17);
 
         log.info("recommendation: {}", recommendation);
 

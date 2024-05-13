@@ -86,7 +86,7 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             IntervalStatus[] availability = getAvailabilityWithinPeriod(
                 (int) intervalCount, schedules, zonedStart, zonedEnd);
             if (Arrays.stream(availability)
-                .allMatch(status -> status != IntervalStatus.UNAVAILABLE)) {
+                .allMatch(this::isAvailable)) {
                 availableMembers.add(AvailableMember.builder()
                     .memberId(attendee.getMemberId())
                     .memberName(attendee.getMemberName())
@@ -180,7 +180,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
 
         MeetingRecommendation fastestMeeting = findFastestMeeting(
             requiredMemberSchedulesAndAvailabilityMap,
-            optionalMemberSchedulesAndAvailabilityMap,
             calculateAvailabilityRequest.getRunningTime() / 15,
             expandedIntervalCount);
         if (fastestMeeting != null) {
@@ -218,7 +217,6 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
      */
     public MeetingRecommendation findFastestMeeting(
         Map<Integer, IndividualSchedulesAndAvailability> requiredMemberAvailabilityMap,
-        Map<Integer, IndividualSchedulesAndAvailability> optionalMemberAvailabilityMap,
         int runningIntervalCount, int intervalCount) {
 
         int fastestStartIndex = -1;
@@ -226,7 +224,7 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         for (int i = 0; i < intervalCount; i++) {
             int finalI = i;
             if (requiredMemberAvailabilityMap.values().stream()
-                .allMatch(sa -> sa.getAvailability()[finalI] != IntervalStatus.UNAVAILABLE)) {
+                .allMatch(sa -> isAvailable(sa.getAvailability()[finalI]))) {
                 availableCount++;
             } else {
                 availableCount = 0;
@@ -315,12 +313,12 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         for (int i = 0; i < runningIntervalCount; i++) {
             int finalI = i;
             requiredMemberAvailabilityMap.forEach((id, sa) -> {
-                if (sa.getAvailability()[finalI] != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI])) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
             });
             optionalMemberAvailabilityMap.forEach((id, sa) -> {
-                if (sa.getAvailability()[finalI] != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI])) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]++;
                 }
             });
@@ -336,20 +334,18 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         for (int i = runningIntervalCount; i < intervalCount; i++) {
             int finalI = i;
             requiredMemberAvailabilityMap.forEach((id, sa) -> {
-                if (sa.getAvailability()[finalI - runningIntervalCount]
-                    != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI - runningIntervalCount])) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]--;
                 }
-                if (sa.getAvailability()[finalI] != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI])) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
             });
             optionalMemberAvailabilityMap.forEach((id, sa) -> {
-                if (sa.getAvailability()[finalI - runningIntervalCount]
-                    != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI - runningIntervalCount])) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]--;
                 }
-                if (sa.getAvailability()[finalI] != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI])) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]++;
                 }
             });
@@ -406,7 +402,7 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         for (int i = 0; i < runningIntervalCount; i++) {
             int finalI = i;
             requiredMemberAvailabilityMap.forEach((id, sa) -> {
-                if (sa.getAvailability()[finalI] != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI])) {
                     requiredAvailableCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
                 if (sa.getAvailability()[finalI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
@@ -433,11 +429,10 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         for (int i = runningIntervalCount; i < intervalCount; i++) {
             int finalI = i;
             requiredMemberAvailabilityMap.forEach((id, sa) -> {
-                if (sa.getAvailability()[finalI - runningIntervalCount]
-                    != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI - runningIntervalCount])) {
                     requiredAvailableCountingWindow[requiredMemberIndexMap.get(id)]--;
                 }
-                if (sa.getAvailability()[finalI] != IntervalStatus.UNAVAILABLE) {
+                if (isAvailable(sa.getAvailability()[finalI])) {
                     requiredAvailableCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
                 if (sa.getAvailability()[finalI - runningIntervalCount]
@@ -572,5 +567,10 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             affectedIndex--;
         }
         return affectedIndex;
+    }
+
+    private boolean isAvailable(IntervalStatus status) {
+        return status == IntervalStatus.AVAILABLE
+            || status == IntervalStatus.AVAILABLE_IN_WORKING_HOURS;
     }
 }
