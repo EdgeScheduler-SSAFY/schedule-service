@@ -162,6 +162,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             System.arraycopy(schedulesAndAvailability.getAvailability(), 0, expandedAvailability,
                 offset, intervalCount);
             schedulesAndAvailability.setAvailability(expandedAvailability);
+            schedulesAndAvailability.setTzOffset(
+                zoneId.getRules().getOffset(zonedStart).toString());
             if (member.getIsRequired()) {
                 requiredMemberSchedulesAndAvailabilityMap.put(member.getMemberId(),
                     schedulesAndAvailability);

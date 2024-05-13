@@ -1245,6 +1245,8 @@ public class SimpleScheduleService implements ScheduleService {
             .occurredAt(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
             .scheduleId(scheduleId)
             .scheduleName(schedule.getName())
+            .startTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getStartDatetime()))
+            .endTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getEndDatetime()))
             .organizerId(schedule.getOrganizerId())
             .attendeeName(response != null ? response.getName() : null)
             .build();

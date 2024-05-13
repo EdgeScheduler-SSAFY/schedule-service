@@ -23,6 +23,8 @@ public class CalculateAvailabilityResponse {
 
         private Integer memberId;
         private Boolean isRequired;
+        @Setter
+        private String tzOffset;
         private List<ScheduleEntry> schedules;
         @Setter
         private IntervalStatus[] availability;
