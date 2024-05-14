@@ -116,4 +116,11 @@ public class Schedule {
     public void deleteSchedule() {
         this.isDeleted = true;
     }
+
+    public void updateScheduleExceptDatetime(String name, String description, Integer color, Boolean isPublic){
+        this.name = name;
+        this.description = description;
+        this.color = color;
+        this.isPublic = isPublic;
+    }
 }
