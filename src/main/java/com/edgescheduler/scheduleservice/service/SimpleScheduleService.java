@@ -903,6 +903,12 @@ public class SimpleScheduleService implements ScheduleService {
 
             // 반복 일정 & 이후 모든 이벤트 수정
             if (Boolean.TRUE.equals(isRecurrence)) {
+                // 만약 expiredDate가 있다면
+                Instant originalExpiredInstant = null;
+                if (savedSchedule.getRecurrence().getExpiredDate() != null) {
+                    // 새로 만들어지는 일정 만료기간으로 바꿔주기
+                    originalExpiredInstant = savedSchedule.getRecurrence().getExpiredDate();
+                }
                 // 기본 반복 기한 오늘 날짜로 수정하기
                 savedSchedule.getRecurrence().terminateRecurrenceByDate(
                     AlterTimeUtils.LocalDateTimeToInstant(
@@ -910,11 +916,9 @@ public class SimpleScheduleService implements ScheduleService {
                 // 새로운 반복 일정 추가하기
                 String freq = recurrence.getFreq();
                 Integer intv = recurrence.getIntv();
-                LocalDateTime expiredDate = recurrence.getExpiredDate();
-                Instant expiredInstant = null;
-                if (expiredDate != null) {
-                    expiredInstant = AlterTimeUtils.LocalDateTimeToInstant(expiredDate, zoneId);
-                }
+                Instant expiredInstant = recurrence.getExpiredDate() != null ? AlterTimeUtils
+                    .LocalDateTimeToInstant(recurrence.getExpiredDate(), zoneId)
+                    : originalExpiredInstant;;
                 Integer count = recurrence.getCount();
                 EnumSet<RecurrenceDayType> recurrenceDay = EnumSet.noneOf(RecurrenceDayType.class);
                 if (recurrence.getRecurrenceDay() != null) {
