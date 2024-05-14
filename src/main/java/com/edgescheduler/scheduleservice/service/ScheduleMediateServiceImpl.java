@@ -184,7 +184,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
         MeetingRecommendation fastestMeeting = findFastestMeeting(
             requiredMemberSchedulesAndAvailabilityMap,
             calculateAvailabilityRequest.getRunningTime() / 15,
-            expandedIntervalCount);
+            expandedIntervalCount,
+            offset);
         if (fastestMeeting != null) {
             fastestMeetings.add(fastestMeeting);
         }
@@ -193,7 +194,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             requiredMemberSchedulesAndAvailabilityMap,
             optionalMemberSchedulesAndAvailabilityMap,
             calculateAvailabilityRequest.getRunningTime() / 15,
-            expandedIntervalCount);
+            expandedIntervalCount,
+            offset);
         if (mostParticipantsMeeting != null) {
             mostParticipantsMeetings.add(mostParticipantsMeeting);
         }
@@ -202,7 +204,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             requiredMemberSchedulesAndAvailabilityMap,
             optionalMemberSchedulesAndAvailabilityMap,
             calculateAvailabilityRequest.getRunningTime() / 15,
-            expandedIntervalCount);
+            expandedIntervalCount,
+            offset);
         if (mostParticipantsInWorkingHourMeeting != null) {
             mostParticipantsInWorkingHourMeetings.add(mostParticipantsInWorkingHourMeeting);
         }
@@ -220,7 +223,7 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
      */
     public MeetingRecommendation findFastestMeeting(
         Map<Integer, IndividualSchedulesAndAvailability> requiredMemberAvailabilityMap,
-        int runningIntervalCount, int intervalCount) {
+        int runningIntervalCount, int intervalCount, int offset) {
 
         int fastestStartIndex = -1;
         int availableCount = 0;
@@ -243,47 +246,10 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
             return null;
         }
 
-//        int finalFastestStartIndex = fastestStartIndex;
-//        requiredMemberAvailabilityMap.forEach((id, sa) -> {
-//            boolean available = IntStream.range(finalFastestStartIndex,
-//                    finalFastestStartIndex + runningIntervalCount)
-//                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
-//            if (available) {
-//                availableMemberIds.add(id);
-//            }
-//        });
-//        optionalMemberAvailabilityMap.forEach((id, sa) -> {
-//            boolean available = IntStream.range(finalFastestStartIndex,
-//                    finalFastestStartIndex + runningIntervalCount)
-//                .allMatch(i -> sa.getAvailability()[i] != IntervalStatus.UNAVAILABLE);
-//            if (available) {
-//                availableMemberIds.add(id);
-//            }
-//        });
-//
-//        requiredMemberAvailabilityMap.forEach((id, sa) -> {
-//            boolean available = IntStream.range(finalFastestStartIndex,
-//                    finalFastestStartIndex + runningIntervalCount)
-//                .allMatch(
-//                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
-//            if (available) {
-//                availableMemberInWorkingHourIds.add(id);
-//            }
-//        });
-//        optionalMemberAvailabilityMap.forEach((id, sa) -> {
-//            boolean available = IntStream.range(finalFastestStartIndex,
-//                    finalFastestStartIndex + runningIntervalCount)
-//                .allMatch(
-//                    i -> sa.getAvailability()[i] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS);
-//            if (available) {
-//                availableMemberInWorkingHourIds.add(id);
-//            }
-//        });
-
         return MeetingRecommendation.builder()
             .recommendType(RecommendType.FASTEST)
-            .startIndexInclusive(fastestStartIndex)
-            .endIndexExclusive(fastestStartIndex + runningIntervalCount)
+            .startIndexInclusive(fastestStartIndex + offset)
+            .endIndexExclusive(fastestStartIndex + runningIntervalCount + offset)
             .build();
     }
 
@@ -293,7 +259,7 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
     public MeetingRecommendation findMostParticipantsMeeting(
         Map<Integer, IndividualSchedulesAndAvailability> requiredMemberAvailabilityMap,
         Map<Integer, IndividualSchedulesAndAvailability> optionalMemberAvailabilityMap,
-        int runningIntervalCount, int intervalCount) {
+        int runningIntervalCount, int intervalCount, int offset) {
 
         int mostParticipantsStartIndex = -1;
         int mostParticipantsCount = 0;
@@ -369,8 +335,8 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
 
         return MeetingRecommendation.builder()
             .recommendType(RecommendType.MOST_PARTICIPANTS)
-            .startIndexInclusive(mostParticipantsStartIndex)
-            .endIndexExclusive(mostParticipantsStartIndex + runningIntervalCount)
+            .startIndexInclusive(mostParticipantsStartIndex + offset)
+            .endIndexExclusive(mostParticipantsStartIndex + runningIntervalCount + offset)
             .build();
     }
 
@@ -380,7 +346,7 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
     public MeetingRecommendation findMostParticipantsInWorkingHoursMeeting(
         Map<Integer, IndividualSchedulesAndAvailability> requiredMemberAvailabilityMap,
         Map<Integer, IndividualSchedulesAndAvailability> optionalMemberAvailabilityMap,
-        int runningIntervalCount, int intervalCount) {
+        int runningIntervalCount, int intervalCount, int offset) {
 
         int mostParticipantsInWorkingHourStartIndex = -1;
         int mostParticipantsInWorkingHourCount = -1;
@@ -477,8 +443,9 @@ public class ScheduleMediateServiceImpl implements ScheduleMediateService {
 
         return MeetingRecommendation.builder()
             .recommendType(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR)
-            .startIndexInclusive(mostParticipantsInWorkingHourStartIndex)
-            .endIndexExclusive(mostParticipantsInWorkingHourStartIndex + runningIntervalCount)
+            .startIndexInclusive(mostParticipantsInWorkingHourStartIndex + offset)
+            .endIndexExclusive(
+                mostParticipantsInWorkingHourStartIndex + runningIntervalCount + offset)
             .build();
     }
 

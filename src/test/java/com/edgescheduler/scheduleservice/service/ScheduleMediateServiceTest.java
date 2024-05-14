@@ -246,7 +246,7 @@ class ScheduleMediateServiceTest {
                         .build()
                 ));
         MeetingRecommendation recommendation = scheduleMediateService.findFastestMeeting(
-            requiredMemberSaMap, 3, 17);
+            requiredMemberSaMap, 3, 17, 0);
 
         log.info("recommendation: {}", recommendation);
 
@@ -318,7 +318,7 @@ class ScheduleMediateServiceTest {
                         .build()
                 ));
         MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsMeeting(
-            requiredMemberSaMap, optionalMemberSaMap, 3, 17);
+            requiredMemberSaMap, optionalMemberSaMap, 3, 17, 0);
 
         log.info("recommendation: {}", recommendation);
         assertEquals(RecommendType.MOST_PARTICIPANTS, recommendation.getRecommendType());
@@ -389,7 +389,7 @@ class ScheduleMediateServiceTest {
                         .build()
                 ));
         MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsInWorkingHoursMeeting(
-            requiredMemberSaMap, optionalMemberSaMap, 3, 17);
+            requiredMemberSaMap, optionalMemberSaMap, 3, 17, 0);
 
         log.info("recommendation: {}", recommendation);
         assertEquals(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR,
