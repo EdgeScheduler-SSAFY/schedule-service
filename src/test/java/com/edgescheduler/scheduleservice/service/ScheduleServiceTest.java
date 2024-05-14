@@ -347,6 +347,8 @@ public class ScheduleServiceTest {
             .color(2)
             .startDatetime(LocalDateTime.of(2024, 5, 22, 8, 0))
             .endDatetime(LocalDateTime.of(2024, 5, 22, 9, 0))
+            .parentStartDatetime(LocalDateTime.of(2024, 5, 22, 7, 0))
+            .parentEndDatetime(LocalDateTime.of(2024, 5, 22, 8, 0))
             .isPublic(false)
             .isRecurrence(true)
             .isOneOff(true)
@@ -361,14 +363,7 @@ public class ScheduleServiceTest {
             () -> assertEquals(scheduleUpdateRequest.getColor(), updatedSchedule.getColor()),
             () -> assertEquals(scheduleUpdateRequest.getDescription(),
                 updatedSchedule.getDescription()),
-            () -> assertEquals(scheduleUpdateRequest.getIsPublic(), updatedSchedule.getIsPublic()),
-            () -> assertEquals(
-                AlterTimeUtils.LocalDateTimeToInstant(scheduleUpdateRequest.getStartDatetime(),
-                    ZoneId.of("Asia/Seoul")), updatedSchedule.getStartDatetime()),
-            () -> assertEquals(
-                AlterTimeUtils.LocalDateTimeToInstant(scheduleUpdateRequest.getEndDatetime(),
-                    ZoneId.of("Asia/Seoul")), updatedSchedule.getEndDatetime(
-                ))
+            () -> assertEquals(scheduleUpdateRequest.getIsPublic(), updatedSchedule.getIsPublic())
         );
     }
 

@@ -51,6 +51,10 @@ public class Schedule {
     @NotNull
     private Instant endDatetime;
 
+    private Instant parentStartDatetime;
+
+    private Instant parentEndDatetime;
+
     private String googleCalendarId;
 
     @NotNull
@@ -107,5 +111,9 @@ public class Schedule {
     ) {
         this.startDatetime = startDatetime;
         this.endDatetime = endDatetime;
+    }
+
+    public void deleteSchedule() {
+        this.isDeleted = true;
     }
 }
