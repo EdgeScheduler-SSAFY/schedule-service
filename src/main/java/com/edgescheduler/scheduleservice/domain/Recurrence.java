@@ -42,5 +42,6 @@ public class Recurrence {
 
     public void terminateRecurrenceByDate(Instant expiredInstant) {
         this.expiredDate = expiredInstant;
+        this.count = null;
     }
 }

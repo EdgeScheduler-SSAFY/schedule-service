@@ -26,4 +26,8 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     // 수정 또는 삭제 된 회의 외 일정
     @Query("SELECT s FROM Schedule s WHERE s.parentSchedule IS NOT NULL AND s.organizerId = :organizerId AND s.type != 'MEETING'")
     List<Schedule> findModifiedOrDeletedNonMeetingSchedulesByOrganizerId(Integer organizerId);
+
+    //
+    @Query("SELECT s FROM Schedule s WHERE s.parentSchedule = :parentSchedule AND s.recurrence IS NOT NULL AND s.isDeleted = false ORDER BY s.startDatetime ASC LIMIT 1")
+    Schedule findNextRecurrenceScheduleByParentScheduleAndStartDatetime(Schedule parentSchedule);
 }

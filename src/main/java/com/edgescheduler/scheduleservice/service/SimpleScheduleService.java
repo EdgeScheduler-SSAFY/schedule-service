@@ -888,23 +888,31 @@ public class SimpleScheduleService implements ScheduleService {
 
             // 반복 일정 & 이후 모든 이벤트 수정
             if (Boolean.TRUE.equals(isRecurrence)) {
-                // 만약 expiredDate가 있다면
-                Instant originalExpiredInstant = null;
-                if (savedSchedule.getRecurrence().getExpiredDate() != null) {
-                    // 새로 만들어지는 일정 만료기간으로 바꿔주기
-                    originalExpiredInstant = savedSchedule.getRecurrence().getExpiredDate();
+                // 일정 외 정보가 바뀐 경우
+                if (!timeIsChanged) {
+                    savedSchedule.updateScheduleExceptDatetime(name, description, color, isPublic);
+                    return ScheduleUpdateResponse.builder().scheduleId(savedSchedule.getId())
+                        .build();
                 }
-                // 기본 반복 기한 오늘 날짜로 수정하기
+                // 일정 바뀐 경우
+                // 기존 일정이 횟수 반복 일정(count), 만료 기한 반복 일정(expiredDate), 무한 반복 일정(infinite)
+                // 기본 반복 기한 오늘 날짜로 수정하기 & count null로 바꾸기
                 savedSchedule.getRecurrence().terminateRecurrenceByDate(
                     AlterTimeUtils.LocalDateTimeToInstant(
                         startDatetime.toLocalDate().atStartOfDay(), zoneId));
                 // 새로운 반복 일정 추가하기
                 String freq = recurrence.getFreq();
                 Integer intv = recurrence.getIntv();
+                Schedule anotherModifitedRecurrence = scheduleRepository.findNextRecurrenceScheduleByParentScheduleAndStartDatetime(
+                    savedSchedule);
+                // 기한이 있는 반복으로 수정하려는 경우 & 중간 일정을 수정하는 경우
                 Instant expiredInstant = recurrence.getExpiredDate() != null ? AlterTimeUtils
                     .LocalDateTimeToInstant(recurrence.getExpiredDate(), zoneId)
-                    : originalExpiredInstant;;
-                Integer count = recurrence.getCount();
+                    : anotherModifitedRecurrence != null
+                        ? anotherModifitedRecurrence.getStartDatetime() : null;
+                // 반복 횟수가 있는 반복으로 수정하려는 경우
+                Integer count = recurrence.getCount() != null ? recurrence.getCount() : null;
+
                 EnumSet<RecurrenceDayType> recurrenceDay = EnumSet.noneOf(RecurrenceDayType.class);
                 if (recurrence.getRecurrenceDay() != null) {
                     recurrence.getRecurrenceDay().forEach(
