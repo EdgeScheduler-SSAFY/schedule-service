@@ -282,7 +282,7 @@ public class SimpleScheduleService implements ScheduleService {
                 continue;
             }
             // 반복일정 중 선택 수정된 일정 경우
-            if (s.getParentSchedule() != null) {
+            if (s.getParentSchedule() != null && s.getParentStartDatetime() != null) {
                 UpdatedSchedule updatedSchedule = UpdatedSchedule.builder()
                     .parentScheduleId(s.getParentSchedule().getId())
                     .updateStartInstant(s.getParentStartDatetime())
@@ -1118,8 +1118,12 @@ public class SimpleScheduleService implements ScheduleService {
                         .endDatetime(endDeleteInstant).isPublic(schedule.getIsPublic())
                         .color(schedule.getColor()).isDeleted(true).parentSchedule(schedule)
                         .build());
-                scheduleRepository.findById(
-                    deletedSchedule.getParentSchedule().getId()).orElseThrow().deleteSchedule();
+                // 만약 수정된 사항을 삭제하는 거라면, 수정 사항도 삭제 처리해주기
+                Schedule modifiedSchedule = scheduleRepository.findById(
+                    deletedSchedule.getParentSchedule().getId()).orElseThrow();
+                if (modifiedSchedule.getParentStartDatetime() != null) {
+                    modifiedSchedule.deleteSchedule();
+                }
                 break;
             // 3. 해당일자부터 모두 삭제하는 경우(종료시작시간부터 만료)
             default:
