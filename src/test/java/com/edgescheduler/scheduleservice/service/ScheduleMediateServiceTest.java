@@ -31,7 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ScheduleMediateServiceTest {
 
     @InjectMocks
-    private ScheduleMediateServiceImpl scheduleMediateService;
+    private ScheduleMediateService scheduleMediateService;
 
     @DisplayName("특정 기간 내 가용 시간 배열 생성")
     @Test
@@ -245,14 +245,16 @@ class ScheduleMediateServiceTest {
                         .availability(e.getValue())
                         .build()
                 ));
-        MeetingRecommendation recommendation = scheduleMediateService.findFastestMeeting(
+        var recommendationList = scheduleMediateService.findFastestMeeting(
             requiredMemberSaMap, 3, 17, 0);
 
-        log.info("recommendation: {}", recommendation);
+        for (MeetingRecommendation recommendation : recommendationList) {
+            log.info("recommendation: {}", recommendation);
+        }
 
-        assertEquals(RecommendType.FASTEST, recommendation.getRecommendType());
-        assertEquals(3, recommendation.getStartIndexInclusive());
-        assertEquals(6, recommendation.getEndIndexExclusive());
+        assertEquals(RecommendType.FASTEST, recommendationList.get(0).getRecommendType());
+        assertEquals(3, recommendationList.get(0).getStartIndexInclusive());
+        assertEquals(6, recommendationList.get(0).getEndIndexExclusive());
     }
 
     @DisplayName("참여 가능 인원이 가장 많은 회의 시간 추천")
@@ -317,13 +319,17 @@ class ScheduleMediateServiceTest {
                         .availability(e.getValue())
                         .build()
                 ));
-        MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsMeeting(
+
+        var recommendationList = scheduleMediateService.findMostParticipantsMeeting(
             requiredMemberSaMap, optionalMemberSaMap, 3, 17, 0);
 
-        log.info("recommendation: {}", recommendation);
-        assertEquals(RecommendType.MOST_PARTICIPANTS, recommendation.getRecommendType());
-        assertEquals(9, recommendation.getStartIndexInclusive());
-        assertEquals(12, recommendation.getEndIndexExclusive());
+        for (MeetingRecommendation recommendation : recommendationList) {
+            log.info("recommendation: {}", recommendation);
+        }
+
+        assertEquals(RecommendType.MOST_PARTICIPANTS, recommendationList.get(0).getRecommendType());
+        assertEquals(9, recommendationList.get(0).getStartIndexInclusive());
+        assertEquals(12, recommendationList.get(0).getEndIndexExclusive());
     }
 
     @DisplayName("근무 시간에 참여 가능한 인원이 가장 많은 회의 시간 추천")
@@ -388,13 +394,17 @@ class ScheduleMediateServiceTest {
                         .availability(e.getValue())
                         .build()
                 ));
-        MeetingRecommendation recommendation = scheduleMediateService.findMostParticipantsInWorkingHoursMeeting(
+
+        var recommendationList = scheduleMediateService.findMostParticipantsInWorkingHoursMeeting(
             requiredMemberSaMap, optionalMemberSaMap, 3, 17, 0);
 
-        log.info("recommendation: {}", recommendation);
+        for (MeetingRecommendation recommendation : recommendationList) {
+            log.info("recommendation: {}", recommendation);
+        }
+
         assertEquals(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR,
-            recommendation.getRecommendType());
-        assertEquals(9, recommendation.getStartIndexInclusive());
-        assertEquals(12, recommendation.getEndIndexExclusive());
+            recommendationList.get(0).getRecommendType());
+        assertEquals(9, recommendationList.get(0).getStartIndexInclusive());
+        assertEquals(12, recommendationList.get(0).getEndIndexExclusive());
     }
 }

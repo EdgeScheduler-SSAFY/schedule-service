@@ -1208,7 +1208,6 @@ public class SimpleScheduleService implements ScheduleService {
             message.setResponse(Response.DECLINED);
         }
 
-
         kafkaProducer.send("attendee-response", message);
 
         if (decideAttendanceRequest.getStartDatetime() != null) {
@@ -1225,6 +1224,8 @@ public class SimpleScheduleService implements ScheduleService {
                 .scheduleId(scheduleId).scheduleName(schedule.getName())
                 .organizerId(schedule.getOrganizerId())
                 .attendeeName(response != null ? response.getName() : null)
+                .startTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getStartDatetime()))
+                .endTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getEndDatetime()))
                 .proposedStartTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
                     decideAttendanceRequest.getStartDatetime(), zoneId))
                 .proposedEndTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
