@@ -148,15 +148,17 @@ public class SimpleScheduleService implements ScheduleService {
                 saveSchedule.getOrganizerId());
             KafkaEventMessage message = MeetingCreateMessage.builder()
                 .occurredAt(LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-                .scheduleId(saveSchedule.getId()).organizerId(saveSchedule.getOrganizerId())
-                .organizerName(response != null ? response.getName() : null).startTime(
+                .scheduleId(saveSchedule.getId())
+                .scheduleName(saveSchedule.getName())
+                .organizerId(saveSchedule.getOrganizerId())
+                .organizerName(response != null ? response.getName() : null)
+                .startTime(
                     LocalDateTime.ofInstant(saveSchedule.getStartDatetime(), ZoneId.of("UTC")))
                 .endTime(LocalDateTime.ofInstant(saveSchedule.getEndDatetime(), ZoneId.of("UTC")))
                 .attendeeIds(attendeeIds)
                 .runningTime(getMinuteDuration(
                     scheduleCreateRequest.getStartDatetime(),
                     scheduleCreateRequest.getEndDatetime()))
-                .attendeeIds(attendeeIds)
                 .build();
             kafkaProducer.send("meeting-created", message);
         }
@@ -1012,7 +1014,8 @@ public class SimpleScheduleService implements ScheduleService {
             savedSchedule.getEndDatetime());
         MeetingUpdateMessage message = MeetingUpdateMessage.builder()
             .occurredAt(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-            .scheduleId(scheduleId).scheduleName(savedSchedule.getName())
+            .scheduleId(scheduleId)
+            .scheduleName(savedSchedule.getName())
             .organizerId(savedSchedule.getOrganizerId())
             .organizerName(response != null ? response.getName() : null)
             .previousStartTime(null)
@@ -1212,6 +1215,7 @@ public class SimpleScheduleService implements ScheduleService {
             .startTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getStartDatetime()))
             .endTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getEndDatetime()))
             .organizerId(schedule.getOrganizerId())
+            .attendeeId(memberId)
             .attendeeName(response != null ? response.getName() : null)
             .build();
 
@@ -1234,10 +1238,13 @@ public class SimpleScheduleService implements ScheduleService {
             Proposal savedProposal = proposalRepository.save(proposal);
             attendee.updateProposal(savedProposal);
 
-            AttendeeProposalMessage proposalMessage = AttendeeProposalMessage.builder().occurredAt(
+            AttendeeProposalMessage proposalMessage = AttendeeProposalMessage.builder()
+                .occurredAt(
                     AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-                .scheduleId(scheduleId).scheduleName(schedule.getName())
+                .scheduleId(scheduleId)
+                .scheduleName(schedule.getName())
                 .organizerId(schedule.getOrganizerId())
+                .attendeeId(memberId)
                 .attendeeName(response != null ? response.getName() : null)
                 .startTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getStartDatetime()))
                 .endTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getEndDatetime()))
