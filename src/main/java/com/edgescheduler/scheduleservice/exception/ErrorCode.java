@@ -9,6 +9,7 @@ public enum ErrorCode {
     EXAMPLE_ERROR(HttpStatus.BAD_REQUEST, "EX001", "This is an example error"),
     SCHEDULE_UPDATE_NO_QUALIFICATION_ERROR(HttpStatus.BAD_REQUEST, "SC001", "수정 권한이 없습니다."),
     SCHEDULE_NOT_FOUND(HttpStatus.NOT_FOUND, "SC002", "일정을 찾을 수 없습니다."),
+    SCHEDULE_NOT_REGISTERED_FOR_RECURRENCE_DAY_IS_EMPTY(HttpStatus.BAD_REQUEST, "SC003", "주 반복 일정 등록 시 반복 요일이 비어있습니다."),
     ATTENDEE_NOT_FOUND(HttpStatus.NOT_FOUND, "AT001", "참석자를 찾을 수 없습니다."),
     ATTENDEE_DUPLICATED_DECISION(HttpStatus.BAD_REQUEST, "AT002", "이미 동일한 응답을 하였습니다."),
     TIMEZONE_NOT_FOUND(HttpStatus.BAD_REQUEST, "TZ001", "ZoneId를 찾을 수 없습니다."),

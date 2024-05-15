@@ -19,7 +19,7 @@ public interface AttendeeRepository extends JpaRepository<Attendee, Long> {
 
     @Modifying
     @Query("UPDATE Attendee a SET a.proposal = NULL WHERE a.schedule = :schedule")
-    void deleteAllProposalBySchedule(Schedule schedule);
+    void deleteProposalBySchedule(Schedule schedule);
 
     @Modifying
     @Query("UPDATE Attendee a SET a.proposal = NULL WHERE a.proposal = :proposal")

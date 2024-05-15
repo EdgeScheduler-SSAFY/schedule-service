@@ -95,6 +95,7 @@ public class SimpleScheduleService implements ScheduleService {
         Recurrence recurrence = null;
         // 반복되는 일정인 경우
         if (isRecurrence) {
+            String freq = scheduleCreateRequest.getRecurrence().getFreq();
             Instant expiredDate = null;
             // 기한이 존재하는 반복 일정의 경우
             if (scheduleCreateRequest.getRecurrence().getExpiredDate() != null) {
@@ -102,13 +103,18 @@ public class SimpleScheduleService implements ScheduleService {
                     scheduleCreateRequest.getRecurrence().getExpiredDate(), zoneId);
             }
             EnumSet<RecurrenceDayType> recurrenceDay = EnumSet.noneOf(RecurrenceDayType.class);
+            // 주단위 반복 일정이지만 요일이 비어있는 경우
+            if (RecurrenceFreqType.valueOf(freq).equals(RecurrenceFreqType.WEEKLY)
+                && scheduleCreateRequest.getRecurrence().getRecurrenceDay() == null) {
+                throw ErrorCode.SCHEDULE_NOT_REGISTERED_FOR_RECURRENCE_DAY_IS_EMPTY.build();
+            }
             // 반복 요일이 존재하는 일정의 경우
             if (scheduleCreateRequest.getRecurrence().getRecurrenceDay() != null) {
                 recurrenceDay.addAll(scheduleCreateRequest.getRecurrence().getRecurrenceDay());
             }
             recurrence = Recurrence.builder()
                 .count(scheduleCreateRequest.getRecurrence().getCount())
-                .freq(RecurrenceFreqType.valueOf(scheduleCreateRequest.getRecurrence().getFreq()))
+                .freq(RecurrenceFreqType.valueOf(freq))
                 .intv(scheduleCreateRequest.getRecurrence().getIntv()).expiredDate(expiredDate)
                 .recurrenceDay(recurrenceDay).build();
 
@@ -1217,7 +1223,9 @@ public class SimpleScheduleService implements ScheduleService {
 
         // 수락여부
         Boolean isAccept = responseScheduleProposal.getIsAccepted();
-        Proposal proposal = proposalRepository.findById(proposalId).orElseThrow();
+        Proposal proposal = proposalRepository.findById(proposalId).orElseThrow(
+            ErrorCode.SCHEDULE_NOT_FOUND::build);
+
         // 제안 거절시
         if (!isAccept) {
             attendeeRepository.deleteOneProposalByProposal(proposal);
@@ -1243,11 +1251,15 @@ public class SimpleScheduleService implements ScheduleService {
                 .updatedFields(List.of(UpdatedField.TIME)).build();
             // 수정 사항 전송
             kafkaProducer.send("meeting-updated", message);
-            // 나머지 제안 다 삭제
-            attendeeRepository.deleteAllProposalBySchedule(schedule);
             for (Attendee a : attendeeList) {
+                // 모두 pending 상태로 바꾸기
+                if (!Objects.equals(a.getMemberId(), memberId)) {
+                    a.updateStatus(AttendeeStatus.PENDING, null);
+                }
+                // 나머지 제안 다 삭제
                 if (a.getProposal() != null) {
                     Proposal proposals = a.getProposal();
+                    attendeeRepository.deleteProposalBySchedule(schedule);
                     proposalRepository.delete(proposals);
                 }
             }
