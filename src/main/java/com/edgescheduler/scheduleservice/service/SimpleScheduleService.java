@@ -627,8 +627,10 @@ public class SimpleScheduleService implements ScheduleService {
                             .isBefore(s.getRecurrence().getExpiredDate())
                             && AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime, zoneId)
                             .isBefore(endInstant)) {
-                            startLocalDatetime = startLocalDatetime.plusWeeks((long) intv * idx);
-                            endLocalDatetime = endLocalDatetime.plusWeeks((long) intv * idx);
+                            if (idx != 0) {
+                                startLocalDatetime = startLocalDatetime.plusWeeks((long) intv);
+                                endLocalDatetime = endLocalDatetime.plusWeeks((long) intv);
+                            }
                             idx++;
                             for (Integer day : dayList) {
                                 LocalDateTime weekStartLocalDatetime = startLocalDatetime.plusDays(
@@ -663,7 +665,6 @@ public class SimpleScheduleService implements ScheduleService {
                                     zoneId).isBefore(s.getRecurrence().getExpiredDate())) {
                                     continue;
                                 }
-
                                 IndividualSchedule result = IndividualSchedule.builder()
                                     .scheduleId(s.getId()).organizerId(s.getOrganizerId())
                                     .name(s.getName()).type(s.getType()).color(s.getColor())
