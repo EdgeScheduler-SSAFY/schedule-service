@@ -1237,18 +1237,24 @@ public class SimpleScheduleService implements ScheduleService {
             Instant startInstant = proposal.getStartDatetime();
             Instant endInstant = proposal.getEndDatetime();
             schedule.changeScheduleTime(startInstant, endInstant);
+            List<Integer> emptyList = new ArrayList<>();
             // 회의 주체자 이름
             UserInfoResponse response = userServiceClient.getUserName(memberId);
-            MeetingUpdateMessage message = MeetingUpdateMessage.builder().occurredAt(
+            MeetingUpdateMessage message = MeetingUpdateMessage.builder()
+                .occurredAt(
                     AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), ZoneId.of(
                         memberTimezoneRepository.findById(memberId).orElseThrow().getZoneId())))
-                .scheduleId(scheduleId).scheduleName(schedule.getName())
-                .organizerId(schedule.getOrganizerId()).organizerName(response.getName())
+                .scheduleId(scheduleId)
+                .scheduleName(schedule.getName())
+                .organizerId(schedule.getOrganizerId())
+                .organizerName(response.getName())
                 .previousStartTime(AlterTimeUtils.InstantToUTCLocalDateTime(originalStartInstant))
                 .previousEndTime(AlterTimeUtils.InstantToUTCLocalDateTime(originalEndInstant))
                 .updatedStartTime(AlterTimeUtils.InstantToUTCLocalDateTime(startInstant))
                 .updatedEndTime(AlterTimeUtils.InstantToUTCLocalDateTime(endInstant))
                 .maintainedAttendeeIds(attendeeList.stream().map(Attendee::getMemberId).toList())
+                .addedAttendeeIds(emptyList)
+                .removedAttendeeIds(emptyList)
                 .updatedFields(List.of(UpdatedField.TIME)).build();
             // 수정 사항 전송
             kafkaProducer.send("meeting-updated", message);
