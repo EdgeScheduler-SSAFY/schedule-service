@@ -172,6 +172,7 @@ public class SimpleScheduleService implements ScheduleService {
         // 해당 일정 조회
         Schedule schedule = scheduleRepository.findById(id)
             .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
+        log.info("found scheduleId: {}", schedule.getId());
         // 조회하는 사람 기준의 시간대
         ZoneId zoneId = ZoneId.of(memberTimezoneRepository.findById(memberId)
             .orElseThrow(ErrorCode.TIMEZONE_NOT_FOUND::build).getZoneId());
