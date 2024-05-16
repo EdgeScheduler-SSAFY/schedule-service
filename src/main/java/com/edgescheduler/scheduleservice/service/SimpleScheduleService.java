@@ -86,7 +86,10 @@ public class SimpleScheduleService implements ScheduleService {
         LocalDateTime endDatetime = scheduleCreateRequest.getEndDatetime();
         Boolean isRecurrence = scheduleCreateRequest.getIsRecurrence();
         Boolean isPublic = scheduleCreateRequest.getIsPublic();
-
+        // 일정 시작 시간이 종료 시간과 같거나 느린 경우
+        if (!startDatetime.isBefore(endDatetime)) {
+            throw ErrorCode.SCHEDULE_NOT_REGISTERED_FOR_START_DATETIME_IS_AFTER_END_DATETIME.build();
+        }
         // 시간 변환
         ZoneId zoneId = ZoneId.of(memberTimezoneRepository.findById(organizerId)
             .orElseThrow(ErrorCode.TIMEZONE_NOT_FOUND::build).getZoneId());
@@ -196,10 +199,10 @@ public class SimpleScheduleService implements ScheduleService {
                     .status(attendee.getStatus())
                     .reason(attendee.getReason())
                     .proposal(scheduleProposal)
-                    .profile(response != null ?response.getProfile():null)
-                    .zoneId(response != null ?response.getZoneId():null)
-                    .department(response != null ?response.getDepartment():null)
-                    .region(response != null ?response.getRegion():null)
+                    .profile(response != null ? response.getProfile() : null)
+                    .zoneId(response != null ? response.getZoneId() : null)
+                    .department(response != null ? response.getDepartment() : null)
+                    .region(response != null ? response.getRegion() : null)
                     .build();
 
                 attendeeList.add(attendeeDetail);
@@ -873,7 +876,10 @@ public class SimpleScheduleService implements ScheduleService {
         Boolean nameIsChanged = scheduleRequest.getNameIsChanged();
         Boolean descriptionIsChanged = scheduleRequest.getDescriptionIsChanged();
         Boolean timeIsChanged = scheduleRequest.getTimeIsChanged();
-
+        // 일정 시작 시간이 종료 시간과 같거나 느린 경우
+        if (!startDatetime.isBefore(endDatetime)) {
+            throw ErrorCode.SCHEDULE_NOT_REGISTERED_FOR_START_DATETIME_IS_AFTER_END_DATETIME.build();
+        }
         ZoneId zoneId = ZoneId.of(
             memberTimezoneRepository.findById(memberId).orElseThrow().getZoneId());
         Instant startInstant = AlterTimeUtils.LocalDateTimeToInstant(startDatetime, zoneId);
@@ -1238,6 +1244,10 @@ public class SimpleScheduleService implements ScheduleService {
         if (decideAttendanceRequest.getStartDatetime() != null) {
             LocalDateTime startLocalDatetime = decideAttendanceRequest.getStartDatetime();
             LocalDateTime endLocalDatetime = decideAttendanceRequest.getEndDatetime();
+            // 일정 시작 시간이 종료 시간과 같거나 느린 경우
+            if (!startLocalDatetime.isBefore(endLocalDatetime)) {
+                throw ErrorCode.SCHEDULE_NOT_REGISTERED_FOR_START_DATETIME_IS_AFTER_END_DATETIME.build();
+            }
             // 제안한 회의 시간
             Integer runningTime = getMinuteDuration(startLocalDatetime, endLocalDatetime);
             // 기존 회의 시간

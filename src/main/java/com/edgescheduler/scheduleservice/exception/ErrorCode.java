@@ -14,8 +14,9 @@ public enum ErrorCode {
     ATTENDEE_DUPLICATED_DECISION(HttpStatus.BAD_REQUEST, "AT002", "이미 동일한 응답을 하였습니다."),
     PROPOSAL_DIFFERENT_RUNNING_TIME(HttpStatus.BAD_REQUEST, "PR001", "회의 총 진행 시간을 변경할 수 없습니다."),
     TIMEZONE_NOT_FOUND(HttpStatus.BAD_REQUEST, "TZ001", "ZoneId를 찾을 수 없습니다."),
-    INVALID_INTERVAL_COUNT(HttpStatus.BAD_REQUEST, "SC002", "기간이 회의 시간보다 짧습니다."),
-    INVALID_PROPOSAL(HttpStatus.BAD_REQUEST, "SC003", "제안이 올바르지 않습니다.");
+    INVALID_INTERVAL_COUNT(HttpStatus.BAD_REQUEST, "SC004", "기간이 회의 시간보다 짧습니다."),
+    INVALID_PROPOSAL(HttpStatus.BAD_REQUEST, "SC005", "제안이 올바르지 않습니다."),
+    SCHEDULE_NOT_REGISTERED_FOR_START_DATETIME_IS_AFTER_END_DATETIME(HttpStatus.BAD_REQUEST,"SC006", "시작 시간이 종료 시간보다 늦습니다.");
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;
