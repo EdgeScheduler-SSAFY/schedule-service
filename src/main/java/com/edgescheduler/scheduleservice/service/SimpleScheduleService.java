@@ -172,7 +172,6 @@ public class SimpleScheduleService implements ScheduleService {
         // 해당 일정 조회
         Schedule schedule = scheduleRepository.findById(id)
             .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
-        log.info("found scheduleId: {}", schedule.getId());
         // 조회하는 사람 기준의 시간대
         ZoneId zoneId = ZoneId.of(memberTimezoneRepository.findById(memberId)
             .orElseThrow(ErrorCode.TIMEZONE_NOT_FOUND::build).getZoneId());
@@ -1249,7 +1248,6 @@ public class SimpleScheduleService implements ScheduleService {
                 .attendeeName(response != null ? response.getName() : null)
                 .startTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getStartDatetime()))
                 .endTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getEndDatetime()))
-                .proposalId(savedProposal.getId())
                 .proposedStartTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
                     decideAttendanceRequest.getStartDatetime(), zoneId))
                 .proposedEndTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
@@ -1291,7 +1289,6 @@ public class SimpleScheduleService implements ScheduleService {
             Instant startInstant = proposal.getStartDatetime();
             Instant endInstant = proposal.getEndDatetime();
             schedule.changeScheduleTime(startInstant, endInstant);
-            List<Integer> emptyList = new ArrayList<>();
             // 회의 주체자 이름
             UserInfoResponse response = userServiceClient.getUserName(memberId);
             LocalDateTime startLocalDatetime = AlterTimeUtils.InstantToUTCLocalDateTime(
@@ -1313,8 +1310,6 @@ public class SimpleScheduleService implements ScheduleService {
                     startLocalDatetime,
                     endLocalDatetime))
                 .maintainedAttendeeIds(attendeeList.stream().map(Attendee::getMemberId).toList())
-                .addedAttendeeIds(emptyList)
-                .removedAttendeeIds(emptyList)
                 .updatedFields(List.of(UpdatedField.TIME))
                 .build();
             // 수정 사항 전송

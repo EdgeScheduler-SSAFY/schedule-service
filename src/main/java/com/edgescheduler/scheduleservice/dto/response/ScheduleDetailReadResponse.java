@@ -35,6 +35,10 @@ public class ScheduleDetailReadResponse {
         private AttendeeStatus status;
         private String reason;
         private ScheduleProposal proposal;
+        private Integer profile;
+        private String zoneId;
+        private String department;
+        private String region;
     }
 
     @Getter
