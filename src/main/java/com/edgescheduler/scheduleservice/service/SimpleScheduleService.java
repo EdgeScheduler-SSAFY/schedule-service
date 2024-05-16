@@ -148,18 +148,11 @@ public class SimpleScheduleService implements ScheduleService {
                 saveSchedule.getOrganizerId());
             KafkaEventMessage message = MeetingCreateMessage.builder()
                 .occurredAt(LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-                .scheduleId(saveSchedule.getId())
-                .scheduleName(saveSchedule.getName())
-                .organizerId(saveSchedule.getOrganizerId())
-                .organizerName(response != null ? response.getName() : null)
-                .startTime(
+                .scheduleId(saveSchedule.getId()).organizerId(saveSchedule.getOrganizerId())
+                .organizerName(response != null ? response.getName() : null).startTime(
                     LocalDateTime.ofInstant(saveSchedule.getStartDatetime(), ZoneId.of("UTC")))
                 .endTime(LocalDateTime.ofInstant(saveSchedule.getEndDatetime(), ZoneId.of("UTC")))
-                .attendeeIds(attendeeIds)
-                .runningTime(getMinuteDuration(
-                    scheduleCreateRequest.getStartDatetime(),
-                    scheduleCreateRequest.getEndDatetime()))
-                .build();
+                .attendeeIds(attendeeIds).build();
             kafkaProducer.send("meeting-created", message);
         }
         return ScheduleCreateResponse.builder().scheduleId(saveSchedule.getId()).build();
@@ -168,7 +161,6 @@ public class SimpleScheduleService implements ScheduleService {
     @Override
     @Transactional(readOnly = true)
     public ScheduleDetailReadResponse getSchedule(Integer memberId, Long id) {
-        log.info("getSchedule memberId: {}, scheduleId: {}", memberId, id);
         // 해당 일정 조회
         Schedule schedule = scheduleRepository.findById(id)
             .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
@@ -200,8 +192,15 @@ public class SimpleScheduleService implements ScheduleService {
                 ScheduleDetailAttendee attendeeDetail = ScheduleDetailAttendee.builder()
                     .memberId(attendee.getMemberId())
                     .memberName(response != null ? response.getName() : null)
-                    .isRequired(attendee.getIsRequired()).status(attendee.getStatus())
-                    .reason(attendee.getReason()).proposal(scheduleProposal).build();
+                    .isRequired(attendee.getIsRequired())
+                    .status(attendee.getStatus())
+                    .reason(attendee.getReason())
+                    .proposal(scheduleProposal)
+                    .profile(response != null ?response.getProfile():null)
+                    .zoneId(response != null ?response.getZoneId():null)
+                    .department(response != null ?response.getDepartment():null)
+                    .region(response != null ?response.getRegion():null)
+                    .build();
 
                 attendeeList.add(attendeeDetail);
             }
@@ -1223,6 +1222,12 @@ public class SimpleScheduleService implements ScheduleService {
         // 수락시
         if (status.equals(AttendeeStatus.ACCEPTED)) {
             message.setResponse(Response.ACCEPTED);
+            // 기존에 제안한 내역이 있으면 제안 삭제
+            if (attendee.getProposal() != null) {
+                Proposal proposal = attendee.getProposal();
+                attendeeRepository.deleteOneProposalByProposal(proposal);
+                proposalRepository.delete(proposal);
+            }
             // 거절시
         } else if (status.equals(AttendeeStatus.DECLINED)) {
             message.setResponse(Response.DECLINED);
@@ -1231,11 +1236,21 @@ public class SimpleScheduleService implements ScheduleService {
         kafkaProducer.send("attendee-response", message);
 
         if (decideAttendanceRequest.getStartDatetime() != null) {
+            LocalDateTime startLocalDatetime = decideAttendanceRequest.getStartDatetime();
+            LocalDateTime endLocalDatetime = decideAttendanceRequest.getEndDatetime();
+            // 제안한 회의 시간
+            Integer runningTime = getMinuteDuration(startLocalDatetime, endLocalDatetime);
+            // 기존 회의 시간
+            Integer originRunningTime = getMinuteDuration(
+                AlterTimeUtils.instantToLocalDateTime(schedule.getStartDatetime(), zoneId),
+                AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(), zoneId));
+            // 총 회의 시간이 다른 경우
+            if (!originRunningTime.equals(runningTime)) {
+                throw ErrorCode.PROPOSAL_DIFFERENT_RUNNING_TIME.build();
+            }
             Proposal proposal = Proposal.builder().startDatetime(
-                AlterTimeUtils.LocalDateTimeToInstant(decideAttendanceRequest.getStartDatetime(),
-                    zoneId)).endDatetime(
-                AlterTimeUtils.LocalDateTimeToInstant(decideAttendanceRequest.getEndDatetime(),
-                    zoneId)).build();
+                AlterTimeUtils.LocalDateTimeToInstant(startLocalDatetime, zoneId)).endDatetime(
+                AlterTimeUtils.LocalDateTimeToInstant(endLocalDatetime, zoneId)).build();
             Proposal savedProposal = proposalRepository.save(proposal);
             attendee.updateProposal(savedProposal);
 
