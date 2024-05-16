@@ -17,6 +17,7 @@ public class AttendeeProposalMessage extends KafkaEventMessage {
     private String attendeeName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Long proposalId;
     private LocalDateTime proposedStartTime;
     private LocalDateTime proposedEndTime;
     private Integer runningTime;

@@ -510,7 +510,7 @@ public class ScheduleMediateService {
                 schedule.getType(), false);
             scheduleEntries.add(
                 ScheduleEntry.builder()
-                    .name(schedule.getName())
+                    .name(schedule.getIsPublic() ? schedule.getName() : "Private")
                     .startIndexInclusive(offset + startAffectedIndex)
                     .endIndexExclusive(offset + endAffectedIndex + 1)
                     .type(schedule.getType())

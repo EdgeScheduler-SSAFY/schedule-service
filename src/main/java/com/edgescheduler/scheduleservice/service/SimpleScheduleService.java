@@ -1249,6 +1249,7 @@ public class SimpleScheduleService implements ScheduleService {
                 .attendeeName(response != null ? response.getName() : null)
                 .startTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getStartDatetime()))
                 .endTime(AlterTimeUtils.InstantToUTCLocalDateTime(schedule.getEndDatetime()))
+                .proposalId(savedProposal.getId())
                 .proposedStartTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
                     decideAttendanceRequest.getStartDatetime(), zoneId))
                 .proposedEndTime(AlterTimeUtils.LocalDateTimeToUTCLocalDateTime(
