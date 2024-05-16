@@ -148,18 +148,11 @@ public class SimpleScheduleService implements ScheduleService {
                 saveSchedule.getOrganizerId());
             KafkaEventMessage message = MeetingCreateMessage.builder()
                 .occurredAt(LocalDateTimeToUTCLocalDateTime(LocalDateTime.now(), zoneId))
-                .scheduleId(saveSchedule.getId())
-                .scheduleName(saveSchedule.getName())
-                .organizerId(saveSchedule.getOrganizerId())
-                .organizerName(response != null ? response.getName() : null)
-                .startTime(
+                .scheduleId(saveSchedule.getId()).organizerId(saveSchedule.getOrganizerId())
+                .organizerName(response != null ? response.getName() : null).startTime(
                     LocalDateTime.ofInstant(saveSchedule.getStartDatetime(), ZoneId.of("UTC")))
                 .endTime(LocalDateTime.ofInstant(saveSchedule.getEndDatetime(), ZoneId.of("UTC")))
-                .attendeeIds(attendeeIds)
-                .runningTime(getMinuteDuration(
-                    scheduleCreateRequest.getStartDatetime(),
-                    scheduleCreateRequest.getEndDatetime()))
-                .build();
+                .attendeeIds(attendeeIds).build();
             kafkaProducer.send("meeting-created", message);
         }
         return ScheduleCreateResponse.builder().scheduleId(saveSchedule.getId()).build();
@@ -168,7 +161,6 @@ public class SimpleScheduleService implements ScheduleService {
     @Override
     @Transactional(readOnly = true)
     public ScheduleDetailReadResponse getSchedule(Integer memberId, Long id) {
-        log.info("getSchedule memberId: {}, scheduleId: {}", memberId, id);
         // 해당 일정 조회
         Schedule schedule = scheduleRepository.findById(id)
             .orElseThrow(ErrorCode.SCHEDULE_NOT_FOUND::build);
