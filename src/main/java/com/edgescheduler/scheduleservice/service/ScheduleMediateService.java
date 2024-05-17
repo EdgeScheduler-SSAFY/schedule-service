@@ -119,14 +119,19 @@ public class ScheduleMediateService {
         var endDateTime = calculateAvailabilityRequest.getEndDatetime();
         var expandedStartDateTime = getStartOfTheDay(startDateTime);
         var expandedEndDateTime = getExpandedEndOfTheDay(endDateTime);
+        log.info("expandedStartDateTime: {}", expandedStartDateTime);
+        log.info("expandedEndDateTime: {}", expandedEndDateTime);
 
         // 주어진 기한 조건을 일단위로 확장한 시작 일시와 끝 일시 사이의 토큰화된 구간의 개수를 계산한다.
         int intervalCount = calculateAdjustedIntervalCount(startDateTime, endDateTime);
         int expandedIntervalCount = calculateIntervalCount(expandedStartDateTime,
             expandedEndDateTime);
+        log.info("intervalCount: {}", intervalCount);
+        log.info("expandedIntervalCount: {}", expandedIntervalCount);
 
         // 가용 시간 배열 확장을 위한 offset 계산
         int offset = getMinuteDuration(expandedStartDateTime, startDateTime) / 15;
+        log.info("offset: {}", offset);
 
         if (intervalCount < calculateAvailabilityRequest.getRunningTime() / 15) {
             throw ErrorCode.INVALID_INTERVAL_COUNT.build();
@@ -143,23 +148,31 @@ public class ScheduleMediateService {
         Instant end = AlterTimeUtils.LocalDateTimeToInstant(
             endDateTime,
             ZoneId.of(organizerTimezone.getZoneId()));
+        log.info("UTC start: {}", start);
+        log.info("UTC end: {}", end);
 
         Map<Integer, IndividualSchedulesAndAvailability> requiredMemberSchedulesAndAvailabilityMap = new HashMap<>();
         Map<Integer, IndividualSchedulesAndAvailability> optionalMemberSchedulesAndAvailabilityMap = new HashMap<>();
 
         calculateAvailabilityRequest.getMemberList().forEach(member -> {
+            log.info("--------------------");
+            log.info("참여자 ID: {}", member.getMemberId());
             ZoneId zoneId = ZoneId.of(
                 memberTimezoneRepository.findById(member.getMemberId())
                     .orElseThrow(ErrorCode.TIMEZONE_NOT_FOUND::build).getZoneId());
             LocalDateTime zonedStart = AlterTimeUtils.instantToLocalDateTime(start, zoneId);
             LocalDateTime zonedEnd = AlterTimeUtils.instantToLocalDateTime(end, zoneId);
+            log.info("zonedStart: {}", zonedStart);
+            log.info("zonedEnd: {}", zonedEnd);
             List<IndividualSchedule> schedules = scheduleService.getScheduleByPeriod(
                 member.getMemberId(),
                 zonedStart,
                 zonedEnd).getScheduleList();
+            log.info("schedules: {}", schedules);
             IndividualSchedulesAndAvailability schedulesAndAvailability = getSchedulesAndAvailabilityWithinPeriod(
                 member.getMemberId(), member.getIsRequired(), intervalCount, offset, schedules,
                 zonedStart, zonedEnd);
+            log.info("scheduleEntries: {}", schedulesAndAvailability.getSchedules());
             IntervalStatus[] expandedAvailability = new IntervalStatus[(int) expandedIntervalCount];
             Arrays.fill(expandedAvailability, IntervalStatus.BLOCKED);
             System.arraycopy(schedulesAndAvailability.getAvailability(), 0, expandedAvailability,
@@ -183,21 +196,21 @@ public class ScheduleMediateService {
         List<MeetingRecommendation> fastestMeetings = findFastestMeeting(
             requiredMemberSchedulesAndAvailabilityMap,
             calculateAvailabilityRequest.getRunningTime() / 15,
-            expandedIntervalCount,
+            intervalCount,
             offset);
 
         List<MeetingRecommendation> mostParticipantsMeetings = findMostParticipantsMeeting(
             requiredMemberSchedulesAndAvailabilityMap,
             optionalMemberSchedulesAndAvailabilityMap,
             calculateAvailabilityRequest.getRunningTime() / 15,
-            expandedIntervalCount,
+            intervalCount,
             offset);
 
         List<MeetingRecommendation> mostParticipantsInWorkingHourMeetings = findMostParticipantsInWorkingHoursMeeting(
             requiredMemberSchedulesAndAvailabilityMap,
             optionalMemberSchedulesAndAvailabilityMap,
             calculateAvailabilityRequest.getRunningTime() / 15,
-            expandedIntervalCount,
+            intervalCount,
             offset);
 
         return CalculateAvailabilityResponse.builder()
@@ -221,9 +234,9 @@ public class ScheduleMediateService {
         int availableCount = 0;
 
         for (int i = 0; i < intervalCount; i++) {
-            int finalI = i;
+            int offsetI = offset + i;
             if (requiredMemberAvailabilityMap.values().stream()
-                .allMatch(sa -> isAvailable(sa.getAvailability()[finalI]))) {
+                .allMatch(sa -> isAvailable(sa.getAvailability()[offsetI]))) {
                 availableCount++;
             } else {
                 availableCount = 0;
@@ -232,8 +245,8 @@ public class ScheduleMediateService {
             if (availableCount == runningIntervalCount) {
                 recommendList.add(MeetingRecommendation.builder()
                     .recommendType(RecommendType.FASTEST)
-                    .startIndexInclusive(i - runningIntervalCount + 1 + offset)
-                    .endIndexExclusive(i + 1 + offset)
+                    .startIndexInclusive(offsetI - runningIntervalCount + 1)
+                    .endIndexExclusive(offsetI + 1)
                     .build());
                 recommendCount++;
                 availableCount--;
@@ -274,41 +287,41 @@ public class ScheduleMediateService {
         }
 
         for (int i = 0; i < runningIntervalCount; i++) {
-            int finalI = i;
+            int offsetI = offset + i;
             requiredMemberAvailabilityMap.forEach((id, sa) -> {
-                if (isAvailable(sa.getAvailability()[finalI])) {
+                if (isAvailable(sa.getAvailability()[offsetI])) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
             });
             optionalMemberAvailabilityMap.forEach((id, sa) -> {
-                if (isAvailable(sa.getAvailability()[finalI])) {
+                if (isAvailable(sa.getAvailability()[offsetI])) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]++;
                 }
             });
 
-            if (allRequiredParticipantsAvailable(runningIntervalCount, requiredCountingWindow)) {
-                int participantsCount = (int) (requiredMemberAvailabilityMap.size()
+        }
+        if (allRequiredParticipantsAvailable(runningIntervalCount, requiredCountingWindow)) {
+            int participantsCount = (int) (requiredMemberAvailabilityMap.size()
                     + Arrays.stream(optionalCountingWindow)
                     .filter(count -> count == runningIntervalCount).count());
-                recommendQueue.add(new RecommendFactor(0, participantsCount));
-            }
+            recommendQueue.add(new RecommendFactor(offset, participantsCount));
         }
 
         for (int i = runningIntervalCount; i < intervalCount; i++) {
-            int finalI = i;
+            int offsetI = offset + i;
             requiredMemberAvailabilityMap.forEach((id, sa) -> {
-                if (isAvailable(sa.getAvailability()[finalI - runningIntervalCount])) {
+                if (isAvailable(sa.getAvailability()[offsetI - runningIntervalCount])) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]--;
                 }
-                if (isAvailable(sa.getAvailability()[finalI])) {
+                if (isAvailable(sa.getAvailability()[offsetI])) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
             });
             optionalMemberAvailabilityMap.forEach((id, sa) -> {
-                if (isAvailable(sa.getAvailability()[finalI - runningIntervalCount])) {
+                if (isAvailable(sa.getAvailability()[offsetI - runningIntervalCount])) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]--;
                 }
-                if (isAvailable(sa.getAvailability()[finalI])) {
+                if (isAvailable(sa.getAvailability()[offsetI])) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]++;
                 }
             });
@@ -322,7 +335,7 @@ public class ScheduleMediateService {
                     recommendQueue.poll();
                 }
                 recommendQueue.add(
-                    new RecommendFactor(i - runningIntervalCount + 1, participantsCount));
+                    new RecommendFactor(offsetI - runningIntervalCount + 1, participantsCount));
             }
         }
 
@@ -334,8 +347,8 @@ public class ScheduleMediateService {
             RecommendFactor rf = recommendQueue.poll();
             recommendList.add(MeetingRecommendation.builder()
                 .recommendType(RecommendType.MOST_PARTICIPANTS)
-                .startIndexInclusive(rf.getStartIndex() + offset)
-                .endIndexExclusive(rf.getStartIndex() + runningIntervalCount + offset)
+                .startIndexInclusive(rf.getStartIndex())
+                .endIndexExclusive(rf.getStartIndex() + runningIntervalCount)
                 .build());
         }
 
@@ -372,55 +385,55 @@ public class ScheduleMediateService {
         }
 
         for (int i = 0; i < runningIntervalCount; i++) {
-            int finalI = i;
+            int offsetI = offset + i;
             requiredMemberAvailabilityMap.forEach((id, sa) -> {
-                if (isAvailable(sa.getAvailability()[finalI])) {
+                if (isAvailable(sa.getAvailability()[offsetI])) {
                     requiredAvailableCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
-                if (sa.getAvailability()[finalI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
+                if (sa.getAvailability()[offsetI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
             });
             optionalMemberAvailabilityMap.forEach((id, sa) -> {
-                if (sa.getAvailability()[finalI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
+                if (sa.getAvailability()[offsetI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]++;
                 }
             });
 
-            if (allRequiredParticipantsAvailable(runningIntervalCount,
+        }
+        if (allRequiredParticipantsAvailable(runningIntervalCount,
                 requiredAvailableCountingWindow)) {
-                int participantsInWorkingHourCount =
+            int participantsInWorkingHourCount =
                     (int) (Arrays.stream(requiredCountingWindow)
-                        .filter(count -> count == runningIntervalCount).count()
-                        + Arrays.stream(optionalCountingWindow)
-                        .filter(count -> count == runningIntervalCount).count());
-                recommendQueue.add(new RecommendFactor(0, participantsInWorkingHourCount));
-            }
+                            .filter(count -> count == runningIntervalCount).count()
+                            + Arrays.stream(optionalCountingWindow)
+                            .filter(count -> count == runningIntervalCount).count());
+            recommendQueue.add(new RecommendFactor(offset, participantsInWorkingHourCount));
         }
 
         for (int i = runningIntervalCount; i < intervalCount; i++) {
-            int finalI = i;
+            int offsetI = offset + i;
             requiredMemberAvailabilityMap.forEach((id, sa) -> {
-                if (isAvailable(sa.getAvailability()[finalI - runningIntervalCount])) {
+                if (isAvailable(sa.getAvailability()[offsetI - runningIntervalCount])) {
                     requiredAvailableCountingWindow[requiredMemberIndexMap.get(id)]--;
                 }
-                if (isAvailable(sa.getAvailability()[finalI])) {
+                if (isAvailable(sa.getAvailability()[offsetI])) {
                     requiredAvailableCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
-                if (sa.getAvailability()[finalI - runningIntervalCount]
+                if (sa.getAvailability()[offsetI - runningIntervalCount]
                     == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]--;
                 }
-                if (sa.getAvailability()[finalI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
+                if (sa.getAvailability()[offsetI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
                     requiredCountingWindow[requiredMemberIndexMap.get(id)]++;
                 }
             });
             optionalMemberAvailabilityMap.forEach((id, sa) -> {
-                if (sa.getAvailability()[finalI - runningIntervalCount]
+                if (sa.getAvailability()[offsetI - runningIntervalCount]
                     == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]--;
                 }
-                if (sa.getAvailability()[finalI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
+                if (sa.getAvailability()[offsetI] == IntervalStatus.AVAILABLE_IN_WORKING_HOURS) {
                     optionalCountingWindow[optionalMemberIndexMap.get(id)]++;
                 }
             });
@@ -438,7 +451,7 @@ public class ScheduleMediateService {
                     recommendQueue.poll();
                 }
                 recommendQueue.add(
-                    new RecommendFactor(i - runningIntervalCount + 1,
+                    new RecommendFactor(offsetI - runningIntervalCount + 1,
                         participantsInWorkingHourCount));
             }
         }
@@ -451,8 +464,8 @@ public class ScheduleMediateService {
             RecommendFactor rf = recommendQueue.poll();
             recommendList.add(MeetingRecommendation.builder()
                 .recommendType(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR)
-                .startIndexInclusive(rf.getStartIndex() + offset)
-                .endIndexExclusive(rf.getStartIndex() + runningIntervalCount + offset)
+                .startIndexInclusive(rf.getStartIndex())
+                .endIndexExclusive(rf.getStartIndex() + runningIntervalCount)
                 .build());
         }
 

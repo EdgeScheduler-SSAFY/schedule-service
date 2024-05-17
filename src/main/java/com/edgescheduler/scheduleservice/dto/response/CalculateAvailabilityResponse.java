@@ -3,10 +3,8 @@ package com.edgescheduler.scheduleservice.dto.response;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import com.edgescheduler.scheduleservice.vo.IntervalStatus;
 import java.util.List;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+
+import lombok.*;
 
 @Getter
 @Builder
@@ -19,6 +17,7 @@ public class CalculateAvailabilityResponse {
 
     @Getter
     @Builder
+    @ToString
     public static class IndividualSchedulesAndAvailability {
 
         private Integer memberId;
@@ -32,6 +31,7 @@ public class CalculateAvailabilityResponse {
 
     @Getter
     @Builder
+    @ToString
     @EqualsAndHashCode
     public static class ScheduleEntry {
 

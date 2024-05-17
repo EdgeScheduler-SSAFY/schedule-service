@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 @Builder
 @Getter
@@ -14,6 +15,7 @@ public class ScheduleListReadResponse {
 
     @Builder
     @Getter
+    @ToString
     public static class IndividualSchedule {
 
         private Long scheduleId;
@@ -28,6 +30,7 @@ public class ScheduleListReadResponse {
 
         @Builder
         @Getter
+        @ToString
         public static class MeetingScheduleDetail {
             private Boolean isRequired;
             private String status;
