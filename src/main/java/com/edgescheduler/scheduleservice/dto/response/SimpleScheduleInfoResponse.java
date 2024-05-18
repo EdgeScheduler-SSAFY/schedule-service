@@ -4,9 +4,11 @@ import com.edgescheduler.scheduleservice.domain.AttendeeStatus;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @Builder
+@ToString
 public class SimpleScheduleInfoResponse {
 
     private Long scheduleId;

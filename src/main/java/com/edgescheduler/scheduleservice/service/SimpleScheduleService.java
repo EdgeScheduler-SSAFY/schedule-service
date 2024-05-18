@@ -254,6 +254,8 @@ public class SimpleScheduleService implements ScheduleService {
             ZoneId.of("UTC"));
         LocalDateTime endDatetime = AlterTimeUtils.instantToLocalDateTime(schedule.getEndDatetime(),
             ZoneId.of("UTC"));
+        log.info("found scheduleId: {}", schedule.getId());
+        log.info("startDatetime: {}, endDatetime: {}", startDatetime, endDatetime);
         return SimpleScheduleInfoResponse.builder()
             .scheduleId(schedule.getId())
             .name(schedule.getName())

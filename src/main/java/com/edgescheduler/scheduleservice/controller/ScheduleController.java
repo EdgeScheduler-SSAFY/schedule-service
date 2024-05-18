@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+@Slf4j
 @RestController
 @RequestMapping("/schedules")
 @RequiredArgsConstructor
@@ -69,6 +71,7 @@ public class ScheduleController {
         @RequestParam(required = true) Integer receiverId
     ) {
         var response = scheduleService.getSimpleSchedule(scheduleId, receiverId);
+        log.info("response: {}", response);
         return ResponseEntity.ok(response);
     }
 
