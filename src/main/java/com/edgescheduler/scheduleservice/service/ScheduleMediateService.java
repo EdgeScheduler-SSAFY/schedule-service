@@ -1,12 +1,5 @@
 package com.edgescheduler.scheduleservice.service;
 
-import static com.edgescheduler.scheduleservice.util.TimeIntervalUtils.calculateAdjustedIntervalCount;
-import static com.edgescheduler.scheduleservice.util.TimeIntervalUtils.calculateIntervalCount;
-import static com.edgescheduler.scheduleservice.util.TimeIntervalUtils.calculateIntervalIndexWithinPeriod;
-import static com.edgescheduler.scheduleservice.util.TimeIntervalUtils.getExpandedEndOfTheDay;
-import static com.edgescheduler.scheduleservice.util.TimeIntervalUtils.getMinuteDuration;
-import static com.edgescheduler.scheduleservice.util.TimeIntervalUtils.getStartOfTheDay;
-
 import com.edgescheduler.scheduleservice.domain.MemberTimezone;
 import com.edgescheduler.scheduleservice.domain.ScheduleType;
 import com.edgescheduler.scheduleservice.dto.request.CalculateAvailabilityRequest;
@@ -23,24 +16,17 @@ import com.edgescheduler.scheduleservice.dto.response.ScheduleListReadResponse.I
 import com.edgescheduler.scheduleservice.exception.ErrorCode;
 import com.edgescheduler.scheduleservice.repository.MemberTimezoneRepository;
 import com.edgescheduler.scheduleservice.util.AlterTimeUtils;
-import com.edgescheduler.scheduleservice.util.TimeIntervalUtils.IntervalIndex;
 import com.edgescheduler.scheduleservice.vo.IntervalStatus;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+
+import static com.edgescheduler.scheduleservice.util.TimeIntervalUtils.*;
 
 @Slf4j
 @Service
@@ -347,8 +333,8 @@ public class ScheduleMediateService {
             RecommendFactor rf = recommendQueue.poll();
             recommendList.add(MeetingRecommendation.builder()
                 .recommendType(RecommendType.MOST_PARTICIPANTS)
-                .startIndexInclusive(rf.getStartIndex())
-                .endIndexExclusive(rf.getStartIndex() + runningIntervalCount)
+                .startIndexInclusive(rf.startIndex())
+                .endIndexExclusive(rf.startIndex() + runningIntervalCount)
                 .build());
         }
 
@@ -464,8 +450,8 @@ public class ScheduleMediateService {
             RecommendFactor rf = recommendQueue.poll();
             recommendList.add(MeetingRecommendation.builder()
                 .recommendType(RecommendType.MOST_PARTICIPANTS_IN_WORKING_HOUR)
-                .startIndexInclusive(rf.getStartIndex())
-                .endIndexExclusive(rf.getStartIndex() + runningIntervalCount)
+                .startIndexInclusive(rf.startIndex())
+                .endIndexExclusive(rf.startIndex() + runningIntervalCount)
                 .build());
         }
 
@@ -568,20 +554,15 @@ public class ScheduleMediateService {
             || status == IntervalStatus.AVAILABLE_IN_WORKING_HOURS;
     }
 
-    @Getter
-    @AllArgsConstructor
-    private static class RecommendFactor implements Comparable<RecommendFactor> {
+        private record RecommendFactor(int startIndex, int count) implements Comparable<RecommendFactor> {
 
-        private final int startIndex;
-        private final int count;
-
-        @Override
-        public int compareTo(RecommendFactor o) { // count가 클수록, startIndex가 작을수록 우선순위가 높다
-            int countCompare = Integer.compare(count, o.count);
-            if (countCompare != 0) {
-                return countCompare;
+            @Override
+            public int compareTo(RecommendFactor o) { // count가 클수록, startIndex가 작을수록 우선순위가 높다
+                int countCompare = Integer.compare(count, o.count);
+                if (countCompare != 0) {
+                    return countCompare;
+                }
+                return Integer.compare(o.startIndex, startIndex);
             }
-            return Integer.compare(o.startIndex, startIndex);
         }
-    }
 }

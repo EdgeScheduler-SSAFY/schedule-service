@@ -17,4 +17,5 @@ public class SimpleScheduleInfoResponse {
     private LocalDateTime endDatetime;
     private Integer runningTime;
     private AttendeeStatus receiverStatus;
+    private Boolean isDeleted;
 }

@@ -263,6 +263,7 @@ public class SimpleScheduleService implements ScheduleService {
             .startDatetime(startDatetime)
             .endDatetime(endDatetime)
             .runningTime(getMinuteDuration(startDatetime, endDatetime))
+            .isDeleted(schedule.getIsDeleted())
             .build();
     }
 
